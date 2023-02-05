@@ -1,0 +1,20 @@
+
+
+
+query GetSupporters {
+    getSupporters {
+        user {
+            ...BriefUserFields
+        }
+        when
+    }
+}
+
+query GetActiveSupporters {
+    getActiveSupporters {
+        user {
+            ...BriefUserFields
+        }
+        when
+    }
+}

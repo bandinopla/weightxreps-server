@@ -1,0 +1,21 @@
+
+query GetFollowers($of: ID!, $has:ID ) {
+  getFollowersCount( uid: $of, has:$has ) {
+      has 
+      total
+  }
+}
+
+
+mutation LikeMessage($target:ID!) {
+    likeMessage( target:$target )
+
+} 
+
+mutation LikeJournalLog($target:ID!) {
+    likeJournalLog( target:$target )
+}
+
+mutation Follow($uid: ID!, $not: Boolean) {
+  follow(uid: $uid, not: $not)
+}

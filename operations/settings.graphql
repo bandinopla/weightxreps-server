@@ -1,0 +1,88 @@
+
+
+fragment SettingsFields on Setting {
+    id 
+    waitingCodeToChange
+}
+
+fragment SettingFields on UserSetting {
+        ... on Setting {
+            ...SettingsFields
+        }
+
+        ... on EmailSetting {
+            currentEmail
+        } 
+
+        ... on DOBSetting {
+            dob
+        }
+
+        ... on CCSetting {
+            cc
+            ccs {
+                cc, name
+            }
+        }
+
+        ... on OptionSetting {
+            i
+            options {
+                i 
+                name
+            }
+        }
+
+        ... on SupporterStatus {
+            slvl 
+            daysLeftAsActive
+        }
+
+        ... on Custom1RMFactorSetting {
+            factor
+            formula
+            default
+        }
+
+        ... on RPESetting {
+            defaults
+            overrides
+        }
+
+        ... on DeleteAccountSetting {
+            signature
+        }
+
+        ... on BlockUsersSetting {
+            unames
+        }
+
+        ... on UsernameSetting {
+            uname
+        }
+
+        ... on SocialMediasSetting {
+            links
+        }
+}
+
+query GetSettings {
+    getUserSettings {
+        ...SettingFields
+    } 
+} 
+
+
+mutation SetSetting( $id:ID!, $value:SettingValue ) {
+    setSetting( id:$id, value:$value ) {
+        ...SettingFields
+    }
+}
+
+mutation SendVerificatonCode( $id:ID!, $code:String! ) {
+
+    sendVerificationCode( id:$id, code:$code ) {
+        ...SettingFields
+    } 
+}
+ 

@@ -1,0 +1,46 @@
+name: Repo --> Staging
+
+on:
+  push:
+    branches:
+      - deploy
+ 
+jobs:
+  deploy:
+    runs-on: ubuntu-latest 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: deploy 
+      - name: Install dependencies to be able to build
+        run: npm i esm-cjs javascript-obfuscator 
+
+      #
+      # this is required because the hosting doesn't allow ESM NodeJS so i need to convert it to CJS...
+      #
+      - name: Build
+        run: node export-esm-to-cjs.cjs  
+
+      - name: Upload folder server-to-upload to FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASS }} 
+          server-dir: /wxr-server-staging/
+          local-dir: ./server-to-upload/  
+
+      - name: SSH run install and restart
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASS }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            source /home/${{ secrets.USER }}/nodevenv/wxr-server-staging/14/bin/activate
+            cd /home/${{ secrets.USER }}/wxr-server-staging
+            npm i
+            kill -9 $(ps faux | grep node | grep "wxr-server-staging" | grep -v grep | awk {'print $2'})

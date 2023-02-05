@@ -1,0 +1,40 @@
+
+
+
+query GetInbox( $olderThan:UTCDate, $newerThan:UTCDate, $dmsWithUID:ID ) { 
+
+  getInbox( olderThan:$olderThan, newerThan:$newerThan, dmsWithUID:$dmsWithUID ) { 
+
+    referencedUsers {
+      ... BriefUserFields
+    }
+    notifications {
+      __typename 
+     ... on  INotification {
+       id 
+       when
+     }
+
+     ... on IHasJOwner { jowner, ymd }
+     ... on IBy { by }
+     ... on ITO { to }
+     ... on IHasMessageID { msgid }
+     ... on IMessageRef { msgid, inResponseTo, inResponseToMsg } 
+     ... on IHasText { text } 
+     ... on SystemNotification { variant:type } 
+    }
+  }
+}
+ 
+
+query GetAnnouncements( $olderThan:UTCDate, $limit:Int! ) 
+{
+    getAnnouncements( olderThan:$olderThan, limit:$limit )
+    {
+        __typename 
+        id
+        when 
+        text 
+        variant:type
+    }
+}

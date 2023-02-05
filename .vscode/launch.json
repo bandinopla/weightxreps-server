@@ -1,0 +1,60 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "run DEV (local DB)",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\server\\index.js"
+            ,"env": {
+                "NODE_ENV": "development"
+                
+            }
+        },
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "run Obfuscated-DEV (local DB)",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\server-to-upload\\index.js"
+            ,"env": {
+                "NODE_ENV": "development"
+            }
+        },
+
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "run PRODUCTION",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\server\\index.js"
+            ,"env": {
+                "NODE_ENV": "production"
+            }
+        },
+
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "run PRODUCTION (remote DB)",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\server\\index.js"
+            ,"env": {
+                "NODE_ENV": "production",
+                "NODE_SSHTUNNEL": "yes", 
+            }
+        }
+    ]
+}

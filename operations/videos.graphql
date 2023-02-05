@@ -1,0 +1,11 @@
+query GetVideos { 
+  getVideos {
+        user {
+            ...BriefUserFields
+        } 
+        when 
+        posted
+        logid
+        link
+  }  
+}

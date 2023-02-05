@@ -1,0 +1,1 @@
+export const lb2kg = v => v*0.4535924;

@@ -1,0 +1,33 @@
+fragment UserFields on User {
+            id
+            avatarhash
+            uname
+            cc
+            slvl
+            sok
+            age
+            bw
+            private
+            isf
+            joined
+            usekg
+            
+            custom1RM
+            est1RMFactor
+            jranges
+            estimate1RMFormula 
+
+            socialLinks
+}
+
+fragment BriefUserFields on User {
+    id
+    avatarhash
+    joined
+    private
+    uname
+    cc 
+    isf
+    sok 
+    slvl
+}

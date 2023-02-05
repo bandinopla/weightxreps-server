@@ -1,0 +1,26 @@
+
+query GetLogInbox( $olderThan:UTCDate, $newerThan:UTCDate, $logid: ID! ) { 
+
+  getLogInbox( olderThan:$olderThan, newerThan:$newerThan, logid: $logid ) { 
+
+    referencedUsers {
+      ... BriefUserFields
+    }
+    notifications {
+      __typename 
+     ... on  INotification {
+       id 
+       when
+     }
+
+     ... on IHasJOwner { jowner, ymd }
+     ... on IBy { by }
+     ... on ITO { to }
+     ... on IHasMessageID { msgid }
+     ... on IMessageRef { msgid, inResponseTo, inResponseToMsg } 
+     ... on IHasText { text } 
+     ... on SystemNotification { variant:type } 
+    }
+  }
+}
+ 

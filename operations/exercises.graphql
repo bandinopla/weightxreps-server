@@ -1,0 +1,54 @@
+
+query GetExercises($uid: ID!) {
+  getExercises(uid: $uid) {
+    days
+    e {
+      id
+      type
+    name
+    }
+  reps
+  }
+}
+
+query GetPRsOf($eid: ID!, $till:YMD) {
+  getPRsOf(eid: $eid, till:$till) {
+    exercise {
+      id
+      type
+      name
+    }
+    totalWorkouts
+    setsOf {
+      r
+      count
+    }
+    prs {
+      w
+      r
+      lb
+      when
+      bw
+    }
+  }
+}
+
+
+mutation ExecExercise($eid: ID, $ename: String, $confirms: ID) {
+  execExercise(id: $eid, name: $ename, confirms: $confirms) {
+    ... on Exercise {
+      id
+      name
+      type
+    }
+    ... on ConfirmAction {
+      message
+      id
+    }
+  }
+}
+
+
+mutation ExecBulkExercises($eids: [ID!]!, $mode: BulkMode!) {
+  execBulkExercises(eids: $eids, mode: $mode)
+}

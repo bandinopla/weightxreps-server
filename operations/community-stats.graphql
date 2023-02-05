@@ -1,0 +1,60 @@
+fragment BaseFields on BaseStat {
+  e, w { v, lb }, bw { v, lb }, by
+}
+
+query GetOfficialExercises {
+    officialExercises {
+        id, tag, variants, coolxbw
+    }
+}
+
+query GetSBDStats {
+    sbdStats  { 
+        total
+        date
+        perclass {
+            wclass {
+                name
+                max
+                min
+                male
+            }
+            graph
+        }
+  }
+}
+
+query GetCommunityStats($etype: String!) {
+  communityStats(etype: $etype) {
+
+    title
+    scanFrecuency
+    heavyest {
+      ...BaseFields
+      ymd
+      reps
+    }  
+    estimated {
+      ...BaseFields
+      originalw {
+        lb, v
+      }
+      reps 
+      ymd
+    }
+
+    volume {
+      ...BaseFields
+      totalReps
+    }
+    timestamp
+    exercises {
+      id
+      type
+      name
+    }
+    users {
+      ...BriefUserFields
+    }
+  }
+}

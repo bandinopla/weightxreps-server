@@ -1,0 +1,11 @@
+mutation SendMessage($message: String!, $type: MessageType!, $targetID: ID!) {
+  sendMessage(message: $message, type: $type, target: $targetID) {
+    id
+    when 
+    msgid
+  }
+}
+
+mutation DeleteMessage($id: ID!) {
+  deleteMessage(id:$id) 
+}

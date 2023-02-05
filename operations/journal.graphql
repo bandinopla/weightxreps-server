@@ -1,0 +1,149 @@
+query GetUserInfo($userInfoUname: String!) {
+  userInfo(uname: $userInfoUname) {
+    user {
+      ...UserFields
+    }
+    daysLogged
+    best3 {
+      w 
+      e {
+        id
+        name
+        type
+      }
+    } 
+  }
+}
+
+query GetCalendarDays($uid: ID!, $from: YYYYMMDD!, $to: YYYYMMDD!) {
+  getCalendarDays(uid: $uid, from: $from, to: $to)
+}
+
+
+query JDay($uid: ID!, $ymd: YMD) {
+  jday(uid: $uid, ymd: $ymd) {
+    id
+    log
+    fromMobile
+    bw
+    eblocks {
+      eid
+      sets {
+        w
+        r
+        s
+        lb 
+        ubw 
+        c 
+        rpe  
+        pr  
+        est1rm
+        eff
+        int
+      }
+    }
+    exercises {
+      exercise {
+        id
+        name
+        type
+      }
+      best {
+        eff { w, r, lb, when, bw, est1rm }
+        int { w, r, lb, when, bw }
+      }
+    }
+  }
+}
+
+query AlsoPosted( $ymd: YMD ) {
+  alsoposted(ymd:$ymd) { 
+    ...BriefUserFields  
+  }
+}
+
+
+fragment jeditorDataFields on JEditorData {
+    exercises { 
+        e {
+            id
+            name
+            type
+        }
+        days 
+        reps
+    } 
+    etags
+    baseBW
+    did {
+      ... on JEditorBWTag {
+            bw
+      }
+      ... on JEditorText {
+        text
+      }
+      ... on JEditorEBlock {
+        e
+        sets {
+          usebw
+          v
+          c
+          s
+          r
+          lb
+          rpe
+        }
+      }
+      ... on JEditorDayTag {
+        on
+      }
+    }
+}
+
+
+query GetJRange($uid: ID!, $ymd: YMD!, $range: Int!) {
+  jrange(uid: $uid, ymd: $ymd, range: $range) {
+    exercises {
+        id
+        name
+        type
+    }
+    days {
+        on
+        did {
+            eid
+            sets {
+                w
+                r
+                s
+                lb 
+                ubw 
+                c 
+                rpe  
+                pr  
+                est1rm
+                eff
+                int
+            }
+        }
+        }
+  }
+}
+
+
+query GetJEditorData($ymd: YMD, $range: Int) {
+  jeditor(ymd: $ymd, range: $range) {
+    ...jeditorDataFields
+  } 
+}
+
+mutation SaveJEditor( $rows:[JEditorSaveRow], $defaultDate:YMD!  )
+{
+    saveJEditor( rows:$rows, defaultDate:$defaultDate )
+}
+
+query DownloadLogs {
+    downloadLogs {
+        ...jeditorDataFields
+    }
+}

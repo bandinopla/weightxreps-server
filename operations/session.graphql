@@ -1,0 +1,37 @@
+ 
+query GetSession {
+    getSession {
+        user {
+            ...UserFields
+        }
+        time
+    }
+} 
+
+mutation Signup($uname:String!, $email:String!, $pass:String!, $isf:Int!, $usekg:Int!)
+{
+    signup(uname:$uname, email:$email, pass:$pass, isf:$isf, usekg:$usekg)
+}
+
+mutation Login( $u:String!, $p:String!) 
+{
+    login(u:$u, p:$p) #-- devuelve session token
+}
+
+mutation VerifySignup($code:String!) {
+    verifySignup( code:$code ) #-- devuelve session token
+}
+
+mutation Forgot( $uore:String! ) {
+    forgot( uore:$uore )
+}
+
+mutation LoginWithGoogle( $jwt:String!, $uname:String, $isf:Int, $usekg:Int )
+{
+    loginWithGoogle( jwt:$jwt, uname:$uname, isf:$isf, usekg:$usekg )
+}
+
+mutation LoginWithFirebase( $token:String!, $uname:String, $isf:Int, $usekg:Int )
+{
+    loginWithFirebase( token:$token, uname:$uname, isf:$isf, usekg:$usekg )
+}

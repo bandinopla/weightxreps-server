@@ -1,0 +1,17 @@
+#
+# this is used to create the React Hooks used to interact with Apollo GraphQL client using the site's schema.
+#
+overwrite: true
+schema: "http://localhost:4000/graphql" 
+documents: "./operations/*.graphql"
+generates:
+  move-to-frontend/generated---db-introspection.json:
+    plugins:
+      - fragment-matcher
+    config:
+      module: commonjs
+  move-to-frontend/generated---db-types-and-hooks.tsx:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo

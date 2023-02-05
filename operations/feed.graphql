@@ -1,0 +1,23 @@
+  query GetFeed( $type:ActivityFeedType!, $olderThan:String, $newerThan:String ){
+ 
+    getActivityFeed( type:$type, olderThan:$olderThan, newerThan:$newerThan ) {
+        user {
+            ...BriefUserFields
+        } 
+        when
+        text
+        workoutPreview {
+            r
+            w
+            e {
+                id
+                name
+                type
+            }
+        }
+        andXmore
+        posted
+        media
+        itemsLeftAfterThis
+    }
+  }

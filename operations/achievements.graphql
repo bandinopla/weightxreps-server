@@ -1,0 +1,16 @@
+query GetAchievements { 
+  getAchievements {
+    id
+    description
+    name
+  } 
+}
+
+query GetAchievementsStateOf($uid: ID!, $asOfThisYmd: YYYYMMDD!) {  
+  getAchievementsStateOf(uid: $uid, asOfThisYMD: $asOfThisYmd) {
+    aid
+    gotit
+    when
+    note
+  }
+}
