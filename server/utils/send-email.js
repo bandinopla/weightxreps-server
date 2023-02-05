@@ -43,7 +43,7 @@ export const sendEmailNow = async ( to, subject, message )=>{
     }
     catch(e)
     {
-        console.log("ERROR:", e)
+        //console.log("ERROR:", e)
     }
      
     return info;
@@ -82,7 +82,7 @@ export const sendNotification = async ( touid, subject, message, optionalEmail )
 
         if( sent.accepted?.length>0 )
         {
-            console.log("MAIL SENT!", to);
+            //console.log("MAIL SENT!", to);
             //OK!
             return;
         }

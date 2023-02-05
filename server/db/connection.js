@@ -124,7 +124,7 @@ export const transaction = ()=> {
 
                             connection.rollback(function() 
                             { 
-                                console.log("TRANSACTION ABORTED");
+                                //console.log("TRANSACTION ABORTED");
                                 errorMessage? reject( new Error(errorMessage) ) : done();
                             });
 

@@ -10,7 +10,7 @@ const $global = {
     host    : process.env.DB_HOST,
     user    : process.env.DB_USER,
     pass    : process.env.DB_PASSWORD,
-    dbname  : process.env.DB_NAME, //'bnplndxy_wxr2',
+    dbname  : process.env.DB_NAME,
     port    : process.env.DB_PORT,
 
     mailer_auth_credentials: {

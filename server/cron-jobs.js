@@ -127,7 +127,7 @@ const SendHappyBdayDMs = async ()=> {
     catch( e )
     {
         // ignore ....
-        console.log( e )
+        //console.log( e )
         return;
     } 
     finally 

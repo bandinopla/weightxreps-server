@@ -217,7 +217,7 @@ export const SaveJournalResolver = {
                     //
                     else if( what.eid!=null )
                     {
-                         console.log( what.eid, "<=0 --->", what.eid<=0 )
+                         //console.log( what.eid, "<=0 --->", what.eid<=0 )
                         var eid = what.eid<=0?  newExercises[ Math.abs(what.eid) ].id  : what.eid ; 
  
 
@@ -413,7 +413,7 @@ export const SaveJournalResolver = {
             if( eids2update.length>0 )
             {
                 var updateRes = await __recalculateExerciseStats( eids2update );  
-                console.log("UPDATE RES = ", updateRes.affectedRows );
+                //console.log("UPDATE RES = ", updateRes.affectedRows );
             } 
             
         }
@@ -423,7 +423,7 @@ export const SaveJournalResolver = {
         //
         catch( e )
         { 
-            console.log("ABORT!!");
+            //console.log("ABORT!!");
             console.error(e)
             await tran.abort( "Aborted because of ----> "+String(e) );
         } 
@@ -506,7 +506,7 @@ const __createNewExercises = async (tran, newExercises, uid)=>{
         }
         else 
         {
-            console.log("Created exercise: ", exercise );
+            //console.log("Created exercise: ", exercise );
         }
     }
 }

@@ -154,7 +154,7 @@ export const InboxResolvers = {
                                                 LIMIT ${ LIMIT }
                                                 `, perUserParams); 
 
-                                                console.log("DMs y Comments length", dmsAndComments.length);
+                                                //console.log("DMs y Comments length", dmsAndComments.length);
                 //#endregion
 
 
@@ -821,7 +821,7 @@ const __appendNotifications = async ( sql, out, dateLimit, askingForOlder ) => {
         //
         const capDate = askingForOlder? out.slice(-1)[0].fecha : out[0].fecha;
 
-        console.log("CAP DATE", capDate )
+        //console.log("CAP DATE", capDate )
         params.push( capDate );
 
         //
@@ -939,7 +939,7 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, myID, partialMessa
                 { 
                     if( e instanceof ReferencingDeletedUser )
                     {
-                        console.log( e );
+                        //console.log( e );
                         return; //ignore ?
                     } 
                     else 
@@ -1223,7 +1223,7 @@ export class UserFieldsManager {
 
         usr.joined = new Date(usr.joined).toISOString();
 
-        console.log( "usr.avatarhash",usr.avatarhash)
+        //console.log( "usr.avatarhash",usr.avatarhash)
 
         return usr;
 

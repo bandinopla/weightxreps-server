@@ -15,7 +15,7 @@ export const deleteCachedIfKeyMatches = reg => {
         
         if( key.match(reg) )
         {
-            console.log("DELETE CACHE KEY: ", key );
+            //console.log("DELETE CACHE KEY: ", key );
             $cache.del(key);
             break;
         }
