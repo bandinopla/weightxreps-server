@@ -359,7 +359,7 @@ export const __recalculateExerciseStats = async (eid, transaction) => {
 
 
 
-    console.log("__recalculateExerciseStats", eids)
+    //console.log("__recalculateExerciseStats", eids)
     //
     // acá se hace LEFT JOIN porque puede pasar que no hayan erows, por lo que se tiene que poder volver todo a 0
     //

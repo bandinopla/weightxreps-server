@@ -17,6 +17,12 @@ cd wxr-dev-db
 docker-compose up
 ```
 
+To fill this new "empty" database with dummy data, run this command:
+```bash
+node wxr-dev-db/fill-with-dummy-data.js
+```
+Everytime you run that script, the database will be truncated, all data will be deleted and new dummy data will be created.
+
 ---
 
 ## :coffee: Run local dev server

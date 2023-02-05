@@ -14,7 +14,7 @@ const $global = {
     port    : process.env.DB_PORT,
 
     mailer_auth_credentials: {
-        user: process.env.NOTIFICATIONS_EMAIL,
+        user: process.env.NOTIFICATIONS_EMAIL,// <<---- if this value is empty then no email will be sent and a console.log will show what would've have been sent.
         pass: process.env.NOTIFICATIONS_EMAIL_PASSWORD
     },
 

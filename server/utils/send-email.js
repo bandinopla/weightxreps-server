@@ -2,7 +2,25 @@ import config from "../config.js";
 import nodemailer from "nodemailer";
 import { query } from "../db/connection.js"; 
 
-var $transport = null;
+
+/**
+ * This "transport" is used when no user is set in the enviromental variable NOTIFICATIONS_EMAIL
+ * Intended to be used when developing so no email is sent...
+ */
+const __emptyTransport = {
+    sendMail: async (info)=>{
+
+        console.log("\n\n------- EMAIL \"Sent\" -----");
+        console.log( JSON.stringify( info, null, 4) );
+        console.log("-------------------------------------------------------\n\n");
+
+        return {
+            accepted: [true]
+        }
+    }
+}
+
+var $transport = !config.mailer_auth_credentials.user? __emptyTransport : null;
  
 async function getTransport() {
 
