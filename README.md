@@ -54,7 +54,7 @@ They are hard-coded in `server/utils/ename2type.js` These are the exercises that
 ---
 
 ## :trophy: How to contribute?
-You clone this repo, do your thing, and do a **pull request**.
+You fork this repo, do your thing, and do a **pull request**.
 
 ---
 
