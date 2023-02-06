@@ -19,9 +19,11 @@ docker-compose up
 
 To fill this new "empty" database with dummy data, run this command:
 ```bash
-node wxr-dev-db/fill-with-dummy-data.js
+npm run reset-db
 ```
 Everytime you run that script, the database will be truncated, all data will be deleted and new dummy data will be created.
+
+The database connection settings live in the `.env` file. Make sure they match your dev database settings. Read the `docker-compose.yml` to see which username, password and database name are used in dev mode...
 
 ---
 

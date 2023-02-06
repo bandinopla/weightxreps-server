@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE `code_verification` (
+CREATE TABLE IF NOT EXISTS `code_verification` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `code` VARCHAR(6) NOT NULL,
     `param` VARCHAR(80) NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE `code_verification` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `donations_history` (
+CREATE TABLE IF NOT EXISTS `donations_history` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid` INTEGER UNSIGNED NOT NULL,
     `donation` DECIMAL(6, 2) NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE `donations_history` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `email_send_queue` (
+CREATE TABLE IF NOT EXISTS `email_send_queue` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `touid` INTEGER UNSIGNED NOT NULL,
     `subject` VARCHAR(80) NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE `email_send_queue` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `erows` (
+CREATE TABLE IF NOT EXISTS `erows` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `logid` INTEGER UNSIGNED NOT NULL,
     `uid` INTEGER UNSIGNED NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE `erows` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `event_notification` (
+CREATE TABLE IF NOT EXISTS `event_notification` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid` INTEGER UNSIGNED NOT NULL,
     `bday` INTEGER NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE `event_notification` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `exercises` (
+CREATE TABLE IF NOT EXISTS `exercises` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid` INTEGER UNSIGNED NOT NULL,
     `nombre` VARCHAR(80) NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE `exercises` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `follow` (
+CREATE TABLE IF NOT EXISTS `follow` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `followerid` INTEGER UNSIGNED NOT NULL,
     `followingid` INTEGER UNSIGNED NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE `follow` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `likes_counter` (
+CREATE TABLE IF NOT EXISTS `likes_counter` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `type_id` INTEGER UNSIGNED NOT NULL,
     `source_id` INTEGER UNSIGNED NOT NULL,
@@ -99,7 +99,7 @@ CREATE TABLE `likes_counter` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `likes_history` (
+CREATE TABLE IF NOT EXISTS `likes_history` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid` INTEGER UNSIGNED NOT NULL,
     `type_id` INTEGER UNSIGNED NOT NULL,
@@ -111,7 +111,7 @@ CREATE TABLE `likes_history` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `logs` (
+CREATE TABLE IF NOT EXISTS `logs` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid` INTEGER UNSIGNED NOT NULL,
     `ultima_modificacion` DATETIME(0) NOT NULL,
@@ -127,7 +127,7 @@ CREATE TABLE `logs` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `message_to` (
+CREATE TABLE IF NOT EXISTS `message_to` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `msgid` INTEGER UNSIGNED NOT NULL,
     `touid` INTEGER UNSIGNED NOT NULL,
@@ -138,7 +138,7 @@ CREATE TABLE `message_to` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `messages` (
+CREATE TABLE IF NOT EXISTS `messages` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `topic` INTEGER UNSIGNED NOT NULL,
     `isGlobal` BOOLEAN NOT NULL,
@@ -155,7 +155,7 @@ CREATE TABLE `messages` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `rpe` (
+CREATE TABLE IF NOT EXISTS `rpe` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `rep` INTEGER UNSIGNED NOT NULL,
     `rpe` FLOAT NOT NULL,
@@ -166,7 +166,7 @@ CREATE TABLE `rpe` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `rpe_override` (
+CREATE TABLE IF NOT EXISTS `rpe_override` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid` INTEGER UNSIGNED NOT NULL,
     `rep` INTEGER UNSIGNED NOT NULL,
@@ -179,7 +179,7 @@ CREATE TABLE `rpe_override` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `signup_users` (
+CREATE TABLE IF NOT EXISTS `signup_users` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `uname` VARCHAR(80) NOT NULL,
     `pass` VARCHAR(32) NOT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE `signup_users` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `social-links` (
+CREATE TABLE IF NOT EXISTS `social-links` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid` INTEGER UNSIGNED NOT NULL,
     `url` VARCHAR(100) NOT NULL,
@@ -207,7 +207,7 @@ CREATE TABLE `social-links` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `deleted` BOOLEAN NOT NULL,
     `email` VARCHAR(100) NOT NULL,
@@ -238,7 +238,7 @@ CREATE TABLE `users` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `users_forgot` (
+CREATE TABLE IF NOT EXISTS `users_forgot` (
     `code` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid` INTEGER UNSIGNED NOT NULL,
 
@@ -246,6 +246,8 @@ CREATE TABLE `users_forgot` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
+
+TRUNCATE TABLE `rpe`;
 
 -- RPEs table data
 INSERT INTO `rpe` (`id`, `rep`, `rpe`, `percent`) VALUES

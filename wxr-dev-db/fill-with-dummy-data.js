@@ -3,6 +3,9 @@ import { Resolvers } from "../server/db/Resolvers.js";
 import { GetUserInfo } from "../server/db/resolvers/journal.js";
 import { createSessionContext } from "../server/db/resolvers/session.js";
 import { dateASYMD } from "../server/utils/dateASYMD.js";
+import fs from 'fs';
+import * as dotenv from 'dotenv';
+dotenv.config(); 
 
 //---------------------------------------------------------------------------------------
 //
@@ -21,17 +24,25 @@ const bwExercises   = ["Chinups","Pull Ups"]
 //---------------------------------------------------------------------------------------
 
 async function seed()
-{
+{  
     console.log("Starting...")
 
+    const initialSQL = fs.readFileSync("wxr-dev-db/sql/db-setup.sql", "utf-8") ; 
+
+    console.log("Ressetting...");
+    const init = await query( fs.readFileSync("wxr-dev-db/sql/db-setup.sql", "utf-8") ); 
+ 
+    console.log("Analizing...");
     const res = await query(`SET FOREIGN_KEY_CHECKS=0;
                     SHOW TABLES;
                     SELECT CONCAT('TRUNCATE TABLE \`',table_name,'\`;') 
                     FROM information_schema.tables 
-                    WHERE table_schema = 'testdb' AND table_name != 'rpe';
+                    WHERE table_schema = '${ process.env.DB_NAME }' AND table_name != 'rpe';
                     SET FOREIGN_KEY_CHECKS=1;
                     SELECT 1
                     `);
+
+    console.log("Truncating..."); 
 
     await query( res[2].map( row=>Object.values(row)[0] ).join("\n") );
 
@@ -131,7 +142,7 @@ async function seed()
 
         }, context );
 
-        console.log("ok!\n");
+        console.log(` %${Math.round( ((i+1)/TOTAL_USERS)*100 ) } done... ok!\n`);
 
     }
 

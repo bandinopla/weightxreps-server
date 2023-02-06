@@ -7,7 +7,8 @@
     "dev": "nodemon ./server/index.js",
     "pack": "node export-esm-to-cjs.cjs",
     "exportschema": "graphql-codegen --config codegen.yml && cp ./move-to-frontend/*.* ../client/src/data",
-    "update-sbd-rank": "node sbd-rank/update-sbdrank-data.js"
+    "update-sbd-rank": "node sbd-rank/update-sbdrank-data.js",
+    "reset-db":"node wxr-dev-db/fill-with-dummy-data.js"
   },
   "type": "module",
   "repository": {
