@@ -42,5 +42,5 @@ jobs:
           script: |
             source /home/${{ secrets.USER }}/nodevenv/wxr-server-staging/14/bin/activate
             cd /home/${{ secrets.USER }}/wxr-server-staging
-            npm i
-            kill -9 $(ps faux | grep node | grep "wxr-server-staging" | grep -v grep | awk {'print $2'})
+            npm i 
+            kill $(ps aux | grep "wxr-server-staging" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..."
