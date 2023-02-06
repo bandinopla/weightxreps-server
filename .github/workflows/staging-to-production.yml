@@ -20,4 +20,4 @@ jobs:
             source /home/${{ secrets.USER }}/nodevenv/public_html/weightxreps.net/wxr-server-2/14/bin/activate
             cd /home/${{ secrets.USER }}/public_html/weightxreps.net/wxr-server-2
             npm i 
-            kill $(ps aux | grep "wxr-server-2" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..."
+            nohup kill $(ps aux | grep "wxr-server-2" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..."
