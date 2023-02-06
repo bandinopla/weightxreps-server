@@ -17,11 +17,12 @@ cd wxr-dev-db
 docker-compose up
 ```
 
+#### :seedling: Seeding the database
 To fill this new "empty" database with dummy data, run this command:
 ```bash
 npm run reset-db
 ```
-Everytime you run that script, the database will be truncated, all data will be deleted and new dummy data will be created.
+Everytime you run that script, the _database will be truncated_, all data will be deleted and new dummy data will be created.
 
 The database connection settings live in the `.env` file. Make sure they match your dev database settings. Read the `docker-compose.yml` to see which username, password and database name are used in dev mode...
 
@@ -30,14 +31,16 @@ The database connection settings live in the `.env` file. Make sure they match y
 ## :coffee: Run local dev server
 To start playing with the code you will need [NodeJS](https://nodejs.org/en/) and keep in mind that the server in which the site is currently hosted works with Node Version 14.20.1 so if you plan to add some new feature make sure it is in range on the features provided up to that point or else the code wont run.
 
-> in VS Code you can go to Run > run Dev (localDB)
+> in VS Code you can go to "Run > run Dev" or "Run > Production" _it will only serve to set the NODE_ENV environment variable to development or production_
 
 or vía NPM ( you will need to install [NodeMon](https://nodemon.io/) )
 ``` 
 npm run dev
 ```
 
-The code lives in the `./server` folder.
+The code will load the `.env` file to configure itself.
+
+The code lives in the `./server` folder. The code that handles the GraphQL shema is is `./server/db/resolvers`
 
 #### :warning: Files you need !
 
@@ -50,7 +53,7 @@ you will need to create & place this file inside of `server` with a [firebase ac
 ## :globe_with_meridians: SBD Rank
 This is the data used in the [SBD World Rank](https://weightxreps.net/sbd-stats) setion of the site.
 
-To update the SBD rank data run `npm run update-sbd-rank` that will download the latest ZIP from openpowerlifting, process it and store the resulting data in `server/db/resolvers/sbd-stats.js`
+To update the SBD rank data run `npm run update-sbd-rank` that will download the latest ZIP from openpowerlifting, process it and store the resulting data in `server/db/resolvers/sbd-stats.js` after that is done, that's all there is to it... the server should be re-run and the new data will be used.
 
 > Note: it will take a while to process...
 
