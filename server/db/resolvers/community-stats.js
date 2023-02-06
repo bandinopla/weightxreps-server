@@ -5,7 +5,7 @@ import { query } from "../connection.js";
 import { sql1RMFormula } from "./exercises.js";
 import { UserFieldsManager } from "./inbox.js";
 import $config from "../../config.js";
-import { sbdstats } from "../sbd-stats.js";
+import { sbdstats } from "./sbd-stats.js";
 
 
 console.log( sbdstats)
