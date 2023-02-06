@@ -84,7 +84,7 @@ const $types = gql`
   }
 
   type SocialMediasSetting implements Setting { 
-    links:String!
+    links:[String]
     ${$SettingFields}
   }
 

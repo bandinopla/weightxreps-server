@@ -21,14 +21,13 @@ const _getSupporters = async ( onlyActive )=> {
 
     var donations = await query(`SELECT MAX(X.fecha) AS donationDate, Y.* FROM 
     
-                                       ((SELECT uid, fecha FROM donations_history where donation>0)
-                                                UNION ALL
-                                        (SELECT uid, fecha_creacion AS fecha FROM bitcoin_donation_tracker where usd_value>0)) AS X 
+                                       ( (SELECT uid, fecha FROM donations_history where donation>0) ) AS X 
 
                                         INNER JOIN users AS Y ON Y.id=X.uid AND Y.deleted=0 AND Y.id>1 
                                         GROUP BY uid
                                         ORDER BY donationDate DESC`);
 
+    
    // var donations = await query( `SELECT * FROM users WHERE supporterLevel>0` )
 
             //var sup = await query(`SELECT * FROM users WHERE supporterLevel>0 ORDER BY supporterLevel DESC`);
