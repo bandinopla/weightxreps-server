@@ -42,5 +42,4 @@ jobs:
           script: |
             source /home/${{ secrets.USER }}/nodevenv/wxr-server-staging/14/bin/activate
             cd /home/${{ secrets.USER }}/wxr-server-staging
-            npm i 
-            nohup kill $(ps aux | grep "wxr-server-staging" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..."
+            npm install && kill $(ps aux | grep "wxr-server-staging" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..."
