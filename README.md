@@ -1,4 +1,11 @@
 ![Logo](https://weightxreps.net/logo.png)
+
+# Welcome!
+I am thrilled to announce that I am releasing my backend code to the community as open source. This has been a long-time goal of mine and I am excited to see the impact it will have. 
+
+By making the code available to all, I am hoping to attract contributions from other developers that can help enhance the codebase. This will result in a stronger and more reliable code, as well as promote collaboration and creativity within the community. I believe that this open source release will be a great step forward for the project and I can't wait to see what the community will create with it.
+
+
 # The Server
 This is the code for the server side of http://weightxreps.net 
 
