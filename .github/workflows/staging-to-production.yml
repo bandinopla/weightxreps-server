@@ -19,4 +19,5 @@ jobs:
             rsync -av --exclude="node_modules" --exclude=".ftp-deploy-sync-state.json" /home/${{ secrets.USER }}/wxr-server-staging/. /home/${{ secrets.USER }}/public_html/weightxreps.net/wxr-server-2/ 
             source /home/${{ secrets.USER }}/nodevenv/public_html/weightxreps.net/wxr-server-2/14/bin/activate
             cd /home/${{ secrets.USER }}/public_html/weightxreps.net/wxr-server-2
-            npm install && kill $(ps aux | grep "wxr-server-2" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..."
+            npm install
+            nohup kill $(ps aux | grep "wxr-server-2" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..." & 
