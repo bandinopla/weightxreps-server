@@ -1,7 +1,7 @@
 ![Logo](https://weightxreps.net/logo.png)
 
 # Welcome
-I am thrilled to announce that I am releasing my backend code to the community as open source. This has been a long-time goal of mine and I am excited to see the impact it will have. 
+I am thrilled to announce that I am releasing my [backend code](https://github.com/bandinopla/weightxreps-server) and [frontend code](https://github.com/bandinopla/weightxreps-client) to the community as open source. This has been a long-time goal of mine and I am excited to see the impact it will have. 
 
 By making the code available to all, I am hoping to attract contributions from other developers that can help enhance the codebase. This will result in a stronger and more reliable code, as well as promote collaboration and creativity within the community. 
 
@@ -50,6 +50,10 @@ npm run dev
 The code will load the `.env` file to configure itself.
 
 The code lives in the `./server` folder. The code that handles the GraphQL shema is is `./server/db/resolvers`
+
+> If you are developing both backend and front end, clone both repos into a folder and name each folder `client` and `server`. This is required because the sever [generates code](https://the-guild.dev/graphql/codegen) when you make changes in the graphql schema and run `npm run exportschema` and goes one level up and expect a client folder to exist... these files will be dynamically created:
+    - `generated---db-introspection.json`
+    - `generated---db-types-and-hooks.tsx`
 
 #### :warning: Files you need !
 
