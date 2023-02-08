@@ -1,14 +1,4 @@
-
-
-
-query GetInbox( $olderThan:UTCDate, $newerThan:UTCDate, $dmsWithUID:ID ) { 
-
-  getInbox( olderThan:$olderThan, newerThan:$newerThan, dmsWithUID:$dmsWithUID ) { 
-
-    referencedUsers {
-      ... BriefUserFields
-    }
-    notifications {
+fragment NotificationFields on Notification {
       __typename 
      ... on  INotification {
        id 
@@ -22,6 +12,35 @@ query GetInbox( $olderThan:UTCDate, $newerThan:UTCDate, $dmsWithUID:ID ) {
      ... on IMessageRef { msgid, inResponseTo, inResponseToMsg } 
      ... on IHasText { text } 
      ... on SystemNotification { variant:type } 
+
+     ... on DM { isGlobal } 
+    
+}
+
+
+query GetInbox( $olderThan:UTCDate, $newerThan:UTCDate, $dmsWithUID:ID ) { 
+
+  getInbox( olderThan:$olderThan, newerThan:$newerThan, dmsWithUID:$dmsWithUID ) { 
+
+    referencedUsers {
+      ... BriefUserFields
+    }
+    notifications {
+        ...NotificationFields
+    }
+  }
+}
+
+
+query GetNotifications( $olderThan:UTCDate, $newerThan:UTCDate ) { 
+
+  getNotifications( olderThan:$olderThan, newerThan:$newerThan ) { 
+
+    referencedUsers {
+      ... BriefUserFields
+    }
+    notifications {
+        ...NotificationFields
     }
   }
 }

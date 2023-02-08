@@ -1,6 +1,6 @@
 import { query, transaction } from "../connection.js";
 import { dateASYMD } from "../../utils/dateASYMD.js";
-import { getAvatarHash } from "../../utils/get-avatar-hash.js";
+import { getAvatarHash } from "../../utils/get-avatar-hash.js"; 
 
 
 /**
@@ -56,6 +56,24 @@ export const InboxResolvers = {
 
         },
 
+
+        getNotifications: async (_, args, context) => {
+ 
+            // only comments on logs, likes and notifications...
+            //
+            return await _getNotifications({  
+
+                $onlyThisLOG    : -1, // All logs
+                $onlyTo         : context.session.id,  
+
+                partialMessages : true, //traer textos parciales...
+
+                olderThan       : args.olderThan,
+                newerThan       : args.newerThan,
+            }); 
+        },
+
+
         /**
          * @typedef {object} GetInboxParams
          * @property {number} dmsWithUID -modo DM. Solo mensajes y likes a mensajes con este uid.
@@ -72,189 +90,137 @@ export const InboxResolvers = {
          * @param {{ session:{ id:number, uname:string } }} context 
          * @returns 
          */
-
-         
         getInbox: async ( parent, args, context, info ) => {  
-             
-            const myID = context.session.id;
-
-            // return {
-            //     notifications:[],
-            //     referencedUsers:[]
-            // }; //throw new Error("Some crazy error");
 
             //
-            // Si es ADMIN y pide dms de "0", está pidiendo los GLOBALS
+            // DM Mode, we are inside of a "chat" window
             //
-            if( context.session.id==1 && args.dmsWithUID==0 )
+            if( args.dmsWithUID )
             {
-                const notifications = await InboxResolvers.Query.getAnnouncements( parent, args, context );
-
-                if( notifications?.length )
-                {
-                    notifications.forEach( n=>n._type=n.__typename );
-                }
-
-                return {
-                    notifications,
-                    //referencedUsers: []
-                }
-            }
-
-
-            //
-            // UN SOLO ITEM POR USUARIO...
-            // hay 2 tipos de "inbox" results... uno se usa para el popmenu, el otro en la dm window.
-            //
-            if( !args.dmsWithUID ) //<--- items para la ventana del notifications pop menu...
-            {    
-
-                //#region DMs y JComments...
-                //
-                // solo queremos 1 item por usuario....
-                // Esto emula el mecanismo del front. Donde el pop menu de notificaciones agrupa los mensajes por usuario. Generando 1 item por usuario.
-                //
-                const perUserParams = [ myID, myID ];
-
-                if( args.olderThan )
-                {
-                    perUserParams.push(args.olderThan);
-                }
-                else if( args.newerThan )
-                {
-                    perUserParams.push(args.newerThan);
-                }
-
-                //
-                // 1) Direct Messages (enviados y recibidos) y JComments (solo recibidos)
-                // 
-                //
-                const dmsAndComments = await query(`SELECT * FROM ( 
-
-                                                    SELECT MAX(A.id) AS id, A.touid, B.uid AS fromid, IF(A.touid=${myID}, B.uid, A.touid) AS targetid,  MAX(B.fecha) AS fecha
-                                                        FROM message_to AS A INNER JOIN messages AS B On B.id=A.msgid 
-                                                        WHERE 
-
-                                                        B.isGlobal=0 AND B.uid>0 
-                                                        AND ( A.touid=? OR (B.uid=? AND B.logid=0) )
-                                                        ${ myID=="1"? ` AND NOT ( B.subject LIKE "%elcome to weight%" AND B.uid=1 AND B.parentid=0 )  ` : "" }
-                                                        AND B.uid != A.touid  
-                                                        #GROUP BY fromid 
-                                                        GROUP BY targetid
-                                                     
-                                                ) AS X
-                                                
-                                                WHERE 1 
-                                                
-                                                ${ args.olderThan? " AND fecha<?" : "" }
-                                                ${ args.newerThan? " AND fecha>?" : "" }
-
-                                                ORDER BY fecha ${ args.newerThan!=null?"ASC":"DESC" }
-
-                                                LIMIT ${ LIMIT }
-                                                `, perUserParams); 
-
-                                                //console.log("DMs y Comments length", dmsAndComments.length);
-                //#endregion
-
-
-                //#region EVENTOS y GLOBALS
-                //
-                // 2) notificaciones...
-                //
-                const capEvents     = dmsAndComments.length==LIMIT; //el query anterior limito sus items... por lo que hay que mantenernos dentro de su cuadro...
-                const eventsParams  = [myID];
-                var CAP_EVENTS      = "";
-
-                // si tiene 3 es porque el query anterior uso limite de fecha.
-                perUserParams.length==3 && eventsParams.push(perUserParams[2]);
-
-                //
-                // "capear" means: un LIMIT genera un "cuadro" ( un "marco" ) de resultados...
-                // al appendearle otra tanda de resultados, los mismos deben vivir dentro del mismo espacio de tiempo
-                // sino el UI del front va a fallar. 
-                //
-                if( capEvents )
-                {
-                    if( args.newerThan )
-                    {
-                        CAP_EVENTS = " AND fecha <= ?";
-                        eventsParams.push( dmsAndComments.slice(-1)[0].fecha );
-                    }
-                    else 
-                    {
-                        CAP_EVENTS = " AND fecha >= ?";
-                        eventsParams.push( dmsAndComments.slice(-1)[0].fecha ); 
-                    }
-                }
-
-                const eventsAndGlobals = await query(` 
-                                            SELECT A.id, A.touid, B.uid AS fromid, B.fecha 
-                                                FROM message_to AS A INNER JOIN messages AS B On B.id=A.msgid 
-
-                                                WHERE (B.isGlobal=1 OR B.uid=0)  
-                                                AND A.touid=?
-                                                AND NOT (B.subject LIKE "%welcome to weight%" AND B.uid=1 AND B.parentid=0) 
-                                                
-                                                ${ args.olderThan? " AND fecha<?" : "" }
-                                                ${ args.newerThan? " AND fecha>?" : "" }
-
-                                                ${CAP_EVENTS}
-
-                                                ORDER BY fecha ${ args.newerThan!=null?"ASC":"DESC" }
-                                                LIMIT ${ LIMIT }
-                                                `, perUserParams);
-                //#endregion
-
-                //
-                // obtener info de estos mensajes solamente (ya pre-filtrados por fecha...)
-                //
-                var soloEstosMessageToIDs = [ ...dmsAndComments, 
-                                              ...eventsAndGlobals ] .map(row=>row.id); 
-
-                //
-                // soloEstosMessageToIDs puede ser un empty []
-                //
-            }
-
- 
-            //
-            // continuar normalmente...
-            //
-            const response = await _getNotifications({ 
-                $soloEstosIDs   : soloEstosMessageToIDs, //<-- puede ser null. O un array de numeros.
-                $onlyThisLOG    : args.dmsWithUID>=0? 0 : null,
-                $onlyTo         : myID,
-                $onlyFrom       : args.dmsWithUID,
-                $twoWays        : args.dmsWithUID>0, // 2 ways si estamos en modo "DM"
-                myID            ,
-
-                olderThan       : args.olderThan,
-                newerThan       : args.newerThan,
-
-                partialMessages : args.dmsWithUID == null //traer textos parciales...
-            });
-
-
-            //
-            // Caso del boton "DM Admin"
-            //
-            if( !response && args.dmsWithUID==1 )
-            {
-                const admin = await query(`SELECT * FROM users WHERE id=1`); 
-                let USR         = new UserFieldsManager("","");
+                //normal get all notifications 
+                // Only messages directed to the user.
                 
-                return {
-                    notifications:[],
-                    referencedUsers:[
-                        USR.extractUserData(admin[0])
-                    ]
-                }
-
+                return await _getNotifications({  
+                    $onlyThisLOG    : 0,  //<-- exclude comments on logs. Only show DMs.
+                    $onlyTo         : context.session.id,
+                    $onlyFrom       : args.dmsWithUID, 
+                    $includeSent    : true, 
+                    olderThan       : args.olderThan,
+                    newerThan       : args.newerThan, 
+                    partialMessages : false  
+                });
             }
 
-            return response;
+            //
+            // General overview Mode... get "1 item" per "chat" ( mesage or like to a comment )
+            //
+            else 
+            {
+                const UID = context.session.id;
 
+                //
+                // get active chats mode
+                //
+                const $sqlMessages = `SELECT
+                                        CASE WHEN A.touid < B.uid THEN CONCAT(A.touid,':', B.uid) ELSE CONCAT(B.uid,':', A.touid) END AS chatkey, 
+
+                                        MAX(B.fecha) AS mostRecentFecha,
+                                        MAX(B.id) AS mostRecentMsgId 
+                                        
+                                        FROM message_to AS A 
+                                        
+                                        INNER JOIN messages AS B ON B.id=A.msgid 
+
+                                        WHERE 
+
+                                            ( A.touid=${UID}  OR  B.uid=${UID} ) 
+                                             
+                                            AND B.logid=0 
+
+                                            ${ 
+                                            
+                                                //
+                                                // for admin, remove automatic messages to avoid saturating the inbox.
+                                                //
+                                            UID==1?` 
+                                                
+                                                AND (B.isGlobal=0 OR A.touid=1)
+                                                AND B.message NOT LIKE 'Happy Anniversary%'
+                                                AND B.message NOT LIKE 'Happy Birthday%'
+                                                AND B.message NOT LIKE 'Welcome to the site!%'
+                                                AND B.message NOT LIKE '%hope you enjoy and find this app useful%'
+                                            ` : "" }
+
+                                            ${ args.olderThan? ` AND B.fecha < ?` :
+                                            args.newerThan? ` AND B.fecha > ?` : "" } 
+
+                                        GROUP BY chatkey
+
+                                        ORDER BY mostRecentMsgId DESC #<--- results in most recent to oldest messages.
+                                        
+                                        LIMIT ${LIMIT}`;
+
+                let chats = await query( $sqlMessages, [ args.olderThan ?? args.newerThan ] );
+   
+                let likes   = [];
+
+                if( chats.length )
+                {
+                     
+                    
+                    //
+                    // get latest likes in those chat ids...
+                    // Obtain likes that have occured inside on of those "chat" interactions.
+                    //
+                    const $sqlLikes = `SELECT  
+                                            CASE WHEN A.uid < B.uid THEN CONCAT(A.uid,':', B.uid) ELSE CONCAT(B.uid,':', A.uid) END AS chatkey,
+                                            MAX(A.fecha) AS mostRecentFecha,
+                                            MAX(A.id) AS mostRecentLikeId
+
+                                        FROM likes_history AS A 
+
+                                        #
+                                        # Inner join with DMs only. (to exlcude likes to journal comments)
+                                        #
+                                        INNER JOIN messages AS B ON B.id=A.source_id AND A.type_id=3 AND B.logid=0 
+
+                                        WHERE 
+
+                                            ${ 
+                                            //
+                                            // Only likes in one of the "chats" queried by $sqlMessages
+                                            //    
+                                            chats.map( chat=>{
+
+                                                const [ uidA, uidB ] = chat.chatkey.split(":");
+
+                                                return `(( A.uid=${uidA} AND B.uid=${uidB} ) 
+                                                        OR ( A.uid=${uidB} AND B.uid=${uidA} ))`
+
+                                            }).join(" OR ") }  
+
+                                        GROUP BY chatkey
+                                        ORDER BY A.id DESC #<--- results in newer first
+                                    `;
+
+
+                    likes = await query( $sqlLikes ); 
+ 
+
+                    return await _getNotifications({  
+
+                        $globalsOnlySentTo  : UID, //<--- to avoid spamming the UID:1 a.k.a. admin...
+                        $onlyTheseMessages  : chats.map(chat=>chat.mostRecentMsgId),
+                        $onlyTheseLikes     : likes.map( like=>like.mostRecentLikeId), 
+                        partialMessages     : true //traer textos parciales...
+
+                    });
+                }  
+                
+
+            }
+ 
+            
         },
 
         /** 
@@ -266,8 +232,7 @@ export const InboxResolvers = {
 
             // TODO habria que chequear que no se esté queriendo acceder a un private log... 
             return await _getNotifications({ 
-                $onlyThisLOG    : args.logid, 
-                myID            : context.session?.id,
+                $onlyThisLOG    : args.logid,  
                 olderThan       : args.olderThan,
                 newerThan       : args.newerThan,
                 noLimit         : true
@@ -442,12 +407,14 @@ export const InboxResolvers = {
 
  
 /**
- * @typedef {object} _getNotificationsParams
- * @property {[number]|null} $soloEstosIDs - null | Array de ID de message_to a analizar.
- * @property {number} $onlyThisLOG - >0 = solo cosas con ese logid... 0 = Direct Messages only
+ * @typedef {object} _getNotificationsParams 
+ * 
+ * @property {number[]|null} $onlyTheseMessages - pre selected message ids
+ * @property {number[]|null} $onlyTheseLikes - pre selected likes ids
+ * @property {number|null} $globalsOnlySentTo - only globals sent directly to this uid
+ * @property {number} $onlyThisLOG - 1+ = Only comments in this log. 0 = Direct Messages only. -1 = All comments on logs but no DMs.
  * @property {number} $onlyTo -solo enviados a ese usuario
- * @property {boolean} $twoWays -incluir tambien, aparte del from->to  el caso to->from 
- * @property {number} myID -El ID del usuario actual que esta llamando esta funcion.
+ * @property {boolean} $includeSent -incluir tambien mensajes enviados por $onlyTo  
  * @property {Date} olderThan -devolver cosas older than esta fecha
  * @property {Date} newerThan -devolver cosas newer than esta fecha
  * 
@@ -456,49 +423,22 @@ export const InboxResolvers = {
  */
  const _getNotifications = async ({
 
-    $soloEstosIDs   ,
+    $onlyTheseMessages,
+    $onlyTheseLikes,
+    $globalsOnlySentTo,
+ 
     $onlyThisLOG    ,
     $onlyTo         ,  
     $onlyFrom       ,  
-    $twoWays        ,
-    myID            ,
+    $includeSent    , 
     olderThan       ,
     newerThan       ,
     partialMessages = false,
     noLimit         = false,
 }) =>{   
-            
-    /*
-    const $onlyThisLOG      = null;                     // solo cosas con ese logid... 
-    const $onlyTo           = 1;                        // solo enviados a ese usuario
-    const $onlyFrom         = 3;                     // solo enviados POR ese usuario. (el "by" debe ser solo ese...)
-    const $twoWays          = true;                    // incluir tambien, aparte del from->to  el caso to->from  
-    */
-    
-    //let myID            = context.session.id;  
-    const DM_MODE = $onlyFrom!=null && $onlyTo!=null;
-
-    const $wantsEverything = (!$onlyThisLOG && !$onlyTo && !$onlyFrom );
-    
-    //
-    // si se especifica un logid pero no un "to" ni un "from" se puede dar el caso de que un mensaje se le 
-    // haya enviado a multiples usuarios (caso mentions usando el @pepe @otro etc...)
-    // en ese caso, solo devolver el primer "message_to" 
-    // ----- else -----
-    // no habría problema, porque el filtro "to" o "from" se encargaría de solo seleccionar 1.
-    //
-    const $ignoreMentions   = $wantsEverything || ( $onlyThisLOG > 0 && !$onlyTo && !$onlyFrom );  
-
-    //
-    // si referencian al admin o a nadie.
-    //
-    //const $ignoreGlobals     = $wantsEverything || $onlyTo==1 || $onlyFrom==1 ;
-
-    //
-    // incluir DMs y Likes a DMs hehcos por el "to" user.
-    //
-    const $includeSentByTo  = $onlyTo>0 && !$onlyFrom;  
-
+               
+    const DM_MODE               = $onlyFrom!=null && $onlyTo!=null;  
+    const IGNORE_SENT_TO_SELF   = !DM_MODE && $onlyThisLOG<0;
 
     const BY            = new UserFieldsManager("D","by_");
     const TO            = new UserFieldsManager("E","to_"); 
@@ -508,32 +448,26 @@ export const InboxResolvers = {
     let queryParams     = [];
     let reverse         = false; 
     var queryDateLimit  ;
-    
-    //
-    // quito los mensajes automaticos que envío en nombre de uid=1 para no saturar mi inbox
-    //
-    //let removeWelcomeMessagesSentByAdmin = myID==1? `AND NOT (B.subject LIKE "%welcome to%" AND B.uid=1) ` : "";
+     
 
     //#region date range selection
     if( olderThan ) 
     {
-        extraWHERE = " AND (B.fecha < ? )";
-        //queryParams.push( args.olderThan ); 
+        extraWHERE = " AND (B.fecha < ? )"; 
 
         //
-        // porque se usa 3 veces...
+        // porque se usa 2 veces...
         //
         queryParams         = new Array(2).fill(olderThan);
         queryDateLimit      = olderThan;
     }
     else if( newerThan ) 
     {
-        extraWHERE = " AND (B.fecha > ? )";
-        ///queryParams.push( args.newerThan ); 
+        extraWHERE = " AND (B.fecha > ? )";  
         reverse = true;
 
         //
-        // porque se usa 3 veces...
+        // porque se usa 2 veces...
         //
         queryParams         = new Array(2).fill(newerThan); 
         queryDateLimit      = newerThan;
@@ -568,89 +502,73 @@ export const InboxResolvers = {
                             ${ TO.innerJoinOnIdEquals("A.touid") }
                             ${ JOWNER.leftJoinOnIdEquals("logs.uid") }
 
-                            WHERE 1 
+                            WHERE  
+                            
+                                ${ $globalsOnlySentTo? `(B.isGlobal=0 OR A.touid=${$globalsOnlySentTo}) AND ` :"" }
 
-                                ${ $soloEstosIDs ? " AND A.id IN (?) ":` 
+                                ${ $onlyTheseMessages? `B.id IN (?)` 
 
-                                        #{/* $ignoreGlobals? " AND B.isGlobal=0 ":"" */}#--- incluye globals... (convertirlos a DM si es DMsWith...)
+                                    : 
+
+                                    `
                                         
-                                        #
-                                        # LOGID filter
-                                        #
-                                        ${ $onlyThisLOG!=null? " AND B.logid="+$onlyThisLOG :"" } # Only this log...
-
-                                        #
-                                        # EVRTYTHING...
-                                        #
-                                        ${ $wantsEverything? " AND B.logid>0 ":""}
-
-                                        #
-                                        # TWO WAYS IF wrapper...
-                                        #
-                                        ${$twoWays?" AND (( 1 ":""}
-
-
-                                            #
-                                            # include sent-by-to wrapper
-                                            #
-                                            ${ $includeSentByTo? " AND (( 1 ":"" }
-
-                                                #
-                                                # TO filter
-                                                #
-                                                ${ $onlyTo? " AND A.touid="+$onlyTo : ""}
-
-                                                #
-                                                # FROM filter
-                                                #
-                                                ${ $onlyFrom? " AND B.uid="+$onlyFrom : ""}
-
-                                            #
-                                            # include sent-by-to wrapper : DMs enviados por el "to"
-                                            #
-                                            ${ $includeSentByTo? `) OR ( B.uid=${$onlyTo} AND B.logid=0 ))`:"" }
-
-
-                                        #
-                                        # TWO WAYS
-                                        #
-                                        ${$twoWays?`) OR ( B.uid=${$onlyTo} AND A.touid=${$onlyFrom} ) )`:""} 
-
                                     #
-                                    # solo 1 mensaje por msg.id
-                                    # 
-                                    ${$ignoreMentions?` GROUP BY A.msgid ` : ""} 
-
+                                    # FROM / TO filter...
                                     #
-                                    # fecha filter...
-                                    #
-                                    ${extraWHERE} ORDER BY B.fecha ${reverse?"ASC":"DESC"} 
+                                    (
+                                        (
+                                            ${$onlyTo? `A.touid=${$onlyTo}`:"1"} 
 
-                                    
-                                    ${noLimit? "":`LIMIT ${LIMIT}`} 
-                            `} 
+                                            ${$onlyFrom? ` ${$onlyTo?" AND " : ""} B.uid=${$onlyFrom}`:" AND 1"}
+                                        )
+
+                                        OR
+
+                                        ${ $includeSent? `( B.uid=${ $onlyTo  + ($onlyFrom? " AND A.touid="+$onlyFrom :"") } )` : "0" }
+                                    )
+
+                                    ${IGNORE_SENT_TO_SELF?" AND A.touid!=B.uid":""}
+    
+                                    #
+                                    # LOGID filter
+                                    #
+                                    ${ $onlyThisLOG!=null? $onlyThisLOG<0? " AND B.logid > 0 " : " AND B.logid="+$onlyThisLOG :"" } # Only this log... 
+
+
+                                    ${extraWHERE} AND 123  #<<--- later in the code i search for this "123"
+
+
+                                    ORDER BY B.fecha ${reverse?"ASC":"DESC"} 
+
+                                
+                                    ${noLimit? "":`LIMIT ${LIMIT}`}` 
+
+                                /* endif:$onlyTheseMessages */} 
 
                         ) AS AB
                         #  
-                        # ordenar de mas recienta a mas viejo...
+                        # newest to oldest...
                         #
                         ORDER BY AB.fecha DESC`;  
 
+    const JOURNAL_LIKE_TYPE = 1;
+    const LIKE_TO_MESSAGE_TYPE = 3; 
+    const $touid = `IF( A.type_id=${JOURNAL_LIKE_TYPE}, C.uid, B.uid )`; //<--- to whom the like was given.
     let likesSQL = `
                     SELECT * FROM (
                     # ----------------------------------------------------------------------------------------------------------------------------------------
-                    # JOURNAL LIKES ( un like al JLog ) :: likes hechos a un LOG en un día particular...
+                    # LIKES...
                     # 
                     SELECT      A.id AS notificationID, 
-                                IF( A.type_id=1, C.uid, B.uid ) AS touid,      
+                                ${$touid} AS touid,      
                                 0 AS id, 
                                 0 AS topic, 
                                 0 AS isGlobal, 
                                 A.uid, 
-                                IF( A.type_id=1, "like-on-log", "like-on-comment") AS subject,  
-                                B.message , # puede ser null
+                                IF( A.type_id=${JOURNAL_LIKE_TYPE}, "like-on-log", "like-on-comment") AS subject,  
+                                B.message , #<---- can be null if it was a like on a journal
                                 A.fecha, 
-                                IF( A.type_id=1, 0, A.source_id )       AS parentid,  
+                                IF( A.type_id=${JOURNAL_LIKE_TYPE}, 0, A.source_id )       AS parentid,  
                                 C.id AS logid, 
                                 C.fecha_del_log AS ymd,
                                 0 as parentuid,
@@ -662,202 +580,143 @@ export const InboxResolvers = {
                             
                         FROM likes_history AS A 
 
-                        LEFT JOIN messages AS B   ON A.type_id=3  AND B.id=A.source_id                                                  # info del comment... 
-                        LEFT JOIN logs AS C       ON C.id=IF( A.type_id=1, A.source_id, IF( A.type_id=3, B.logid, 0 ) )
+                        #
+                        # like on a comment / message
+                        #
+                        LEFT JOIN messages AS B   ON A.type_id=${LIKE_TO_MESSAGE_TYPE}  AND B.id=A.source_id  
+
+                        #
+                        # like on a journal log.
+                        #
+                        LEFT JOIN logs AS C       ON C.id=IF( A.type_id=${JOURNAL_LIKE_TYPE}, A.source_id, IF( A.type_id=${LIKE_TO_MESSAGE_TYPE}, B.logid, 0 ) )
+
 
                         ${ BY.innerJoinOnIdEquals("A.uid") }
-                        ${ TO.innerJoinOnIdEquals("IF( A.type_id=1, C.uid, B.uid )") }
+                        ${ TO.innerJoinOnIdEquals(`IF( A.type_id=${JOURNAL_LIKE_TYPE}, C.uid, B.uid )`) }
                         ${ JOWNER.leftJoinOnIdEquals("C.uid") }
 
-
-                        #
-                        # 1=like on Log   3=like con message
-                        #
+ 
                         WHERE 
 
-                            #
-                            #  solo likes en journal o comments.
-                            #
-                            (A.type_id=1 OR A.type_id=3) 
-
-                            #
-                            # Everything
-                            #
-                            ${ $wantsEverything? " AND C.id>0 ":""}
-
-                            #
-                            # LOGID filter
-                            #
-                            ${ $onlyThisLOG!=null? " AND C.id="+$onlyThisLOG :"" } 
-
-
-                            #
-                            # TWO WAYS IF wrapper...
-                            #
-                            ${$twoWays?" AND ( ( 1 ":""}
-
-
-                                #
-                                # include sent-by-to wrapper
-                                #
-                                ${ $includeSentByTo? " AND (( 1 ":"" }
+                            ${ $onlyTheseLikes? `A.id IN (?)` 
+                                : 
+                                `   #
+                                    #  solo likes en journal o comments.
                                     #
-                                    # TO filter
-                                    # 
-                                    ${$onlyTo? " AND  IFNULL(B.uid,C.uid)="+$onlyTo : ""}
-
+                                    (A.type_id=${JOURNAL_LIKE_TYPE} OR A.type_id=${LIKE_TO_MESSAGE_TYPE})  
+        
+        
+                                    AND
+        
                                     #
-                                    # FROM filter
+                                    # FROM / TO filter...
                                     #
-                                    ${$onlyFrom? " AND A.uid="+$onlyFrom : ""}
-
-                                #
-                                # include sent-by-to : solo likes a mensajes de tipo DM (no journal comments)
-                                #
-                                ${ $includeSentByTo? `) OR ( A.type_id=3 AND A.uid=${$onlyTo} AND B.logid=0 ))`:"" }
-
-                            #
-                            # TWO WAYS Filter...
-                            #
-                            ${$twoWays?`) OR ( IFNULL(B.uid,C.uid)=${$onlyFrom} AND A.uid=${$onlyTo} ))`:""}
-
-                            #
-                            # Fecha filter...
-                            #
-                            ${extraWHERE.replace("B.fecha","A.fecha")} 
-                            
-                            %_CAP_PLACEHOLDER_%
-                            
-                            ORDER BY A.fecha ${reverse?"ASC":"DESC"} 
-
-                            ${noLimit? "":`LIMIT ${LIMIT}`} 
+                                    (
+                                        (
+                                            ${$onlyTo? `${$touid} =${$onlyTo} `:"1"} 
+        
+                                            ${$onlyFrom? ` ${$onlyTo?" AND " : ""} A.uid=${$onlyFrom}`:" AND 1"}
+                                        )
+        
+                                        OR
+        
+                                        ${ $includeSent? ` ( A.uid=${$onlyTo + ($onlyFrom?" AND "+ $touid+"="+$onlyFrom:"") } )` : "0" }
+                                    )
+        
+                                    #
+                                    # LOGID filter
+                                    #
+                                    ${ $onlyThisLOG<0? " AND C.id>0 " : $onlyThisLOG>0? " AND C.id="+$onlyThisLOG :" AND C.id IS NULL" } 
+        
+        
+                                    #
+                                    # Fecha filter...
+                                    #
+                                    ${extraWHERE.replace("B.fecha","A.fecha")} 
+                                    
+                                    
+                                    ORDER BY A.fecha ${reverse?"ASC":"DESC"} 
+        
+                                    ${noLimit? "":`LIMIT ${LIMIT}`}
+                                ` 
+                                /* endif: $onlyTheseLikes */}
 
                             ) AS AB
+
                             #  
-                            # ordenar de mas recienta a mas viejo...
+                            # newest to oldest....
                             #
                             ORDER BY AB.fecha DESC 
-                            `;
-
-    /**
-     * en el contexto del inbox popmenu... solo queremos 1 item por usuario.
-     *      - la fecha del filtro que viene se lee como: dame los items cuya notificacion mas reciente (no todas) sea mas vieja (o nueva) que la fecha que vino...
-     *      - el limit debe entender que es sobre los ITEMS y no sobre las notificaciones... 
-     *         porque un item puede tenes 10 notifs y con fecha re vieja y eso arruinaria el limit...
-     * ---------------------------------
-     * obtener los message_to ID de los items a mostrar y correr este select contra esos IDs only...
-     * ---
-     *  SELECT MAX(A.id), A.touid, B.uid AS fromid, MAX(B.fecha)
-        FROM message_to AS A INNER JOIN messages AS B On B.id=A.msgid 
-        WHERE B.isGlobal=0 AND B.uid>0 AND A.touid=1 GROUP BY touid, fromid;
-     * en el contexto de un DM, queremos todos los mensajes.
-        ----
-
-        Al obtener los mensajes, query los likes entro del rango de tiempo normal + ponerle un cap al older than...
-        --si hay mensajes. Que el like when no sea mas viejo que el mensaje mas "viejo"
-        -- pero si los items devueltos son menores al LIMIT. remover esa reestriccion... (significa que no hay mas items anyway...)
-     */
+                            `; 
  
-
-    if( $soloEstosIDs )
-    {
-        queryParams.unshift( $soloEstosIDs );
-    }
-    
 
     //
     // get notifications...
     //
-    let rows = $soloEstosIDs && $soloEstosIDs.length==0? [] : await query( $sql, queryParams);  
+    let rows = $onlyTheseMessages? 
+                    $onlyTheseMessages.length? 
+                        await query($sql,[$onlyTheseMessages]) : []
+               : await query( $sql, queryParams );  
+
 
 
     //
-    // "append" los likes.... exec likesSQL con el time limit correspondiente...
-    // Nunca devolver nada mas viejo que rows a menos que rows.length sea < al LIMIT (lo cual significaria que ya se vió todo...)
-    // nunca devolver mas nuevo que rows a menos que rows.length<LIMIT (lo cual significa que ya vio todo...)
+    // likes...
+    //
+    let likesRows = $onlyTheseLikes?
+                        $onlyTheseLikes.length? 
+                            await query(likesSQL,[$onlyTheseLikes]) : []  
+                    : await query( likesSQL, queryParams );      
 
-    //console.log("MESSAGES LENGTH", rows.length );
-    await __appendNotifications( likesSQL, rows, queryDateLimit, newerThan==null );
+
+    const rowsHasLIMIT = !$onlyTheseMessages && !noLimit && rows.length==LIMIT;
+ 
 
 
-    if( rows.length==0 ) 
-            return null;  
+    // 
+    // CAP / Cut overflow rsultset...
+    //
+    if( rowsHasLIMIT && likesRows.length>0 )
+    {     
+        const newestRow     = rows[0].fecha;
+        const oldestRow     = rows[ rows.length-1 ].fecha;
+
+        //
+        // we have newer likes, but "rows" probably too, but was limited by LIMIT.
+        //
+        if( newerThan )
+        { 
+            likesRows       = likesRows.filter( row=>row.fecha<=newestRow );
+        }
+        else 
+        { 
+            likesRows       = likesRows.filter( row=>row.fecha>=oldestRow );
+        } 
+ 
+    }  
+    
+
+    //
+    // add likes info...
+    //
+    rows = [...rows, ...likesRows].sort((a, b) => b.fecha - a.fecha);  
+ 
+
+
+    if( rows.length==0 ) return null;  
 
     //
     // convert to graphql format
     //
-    return await getInboxGraphQLResponse( rows, BY, TO, JOWNER, myID, partialMessages, DM_MODE );   
-}
-
-
-/**
- * 
- * @param {*} sql 
- * @param {*} out 
- * @param {Date} dateLimit -se usa para olderThan o newerThan
- */
-const __appendNotifications = async ( sql, out, dateLimit, askingForOlder ) => {
-
-    //
-    // parametros para el SQL...  olderThan:dateLimit + if cap=true  notOlderThan (fechaMasViejaDelOut)
-    //                            newerThan:limit + if cap=true notNewerThan fecha mas reciente del out...
-    //
-    const params = [  ]; 
-
-    dateLimit && params.push(dateLimit);
-
-    //
-    // si hay menos del LIMIT significa que ya no hay nada mas (sea olderThan o newerThan) ya se vió todo, por lo que
-    // si se devuelve fechas que vayan mas alla de lo que devuelve el main query, todo estaría bien.
-    //
-    const capRange = out.length>=LIMIT;
- 
-
-    if( capRange && out.length)
-    {
-        //
-        // mantener los resultados del query dentro del rango de fechas del query principal.
-        // esto es para que el boton de "fetch more" del front funcione bien... 
-        //
-        const capDate = askingForOlder? out.slice(-1)[0].fecha : out[0].fecha;
-
-        //console.log("CAP DATE", capDate )
-        params.push( capDate );
-
-        //
-        //  askingForOlder? cap fecha a no mas vieja que la fecha mas vieja del "main" query
-        // !askingForOlder? cap fecha a no mas nueva que la más nueva del "main" query
-        //
-        sql = sql.replace("%_CAP_PLACEHOLDER_%", " AND (A.fecha"+(askingForOlder?" >= ?":" <= ?")+") " ); 
-    }
-    else 
-    {
-        sql = sql.replace("%_CAP_PLACEHOLDER_%",""); 
-    }
-
-    //
-    // ejecutar el query...
-    //
- 
-    const likesResult = await query( sql, params );  
-    
-    //
-    // append results to "out"
-    //
-    if( likesResult.length )
-    {
-        Array.prototype.push.apply( out, likesResult );
-    }
-
-}
- 
+    return await getInboxGraphQLResponse( rows, BY, TO, JOWNER, partialMessages, DM_MODE );   
+} 
 
 
 
 /**
  * Convierte el resultado de mysql al que requiere el graphql schema
  */
-const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, myID, partialMessages=false, DM_MODE=false ) => {
+const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, partialMessages=false, DM_MODE=false ) => {
 
             /**
              * jowners referenciados
@@ -944,13 +803,10 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, myID, partialMessa
                     } 
                     else 
                     {
+                        console.log( row )
                         throw e; 
                     }
-                } 
-
-
-                let isSent         = by.id==myID;
-                const fromMeToMe   = by.id==to.id; 
+                }  
 
 
  
@@ -996,8 +852,12 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, myID, partialMessa
                 else if( row.isGlobal )
                 { 
 
-                    if( DM_MODE )
-                    {
+                    // if( DM_MODE )
+                    // {
+
+                        //
+                        // Globals will appear as if sent by whomever created the global in this case UID:1 the admin...
+                        //
                         notifications.push({
                             _type           : "DM",
                             id,
@@ -1010,20 +870,21 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, myID, partialMessa
                             inResponseTo    : null,  
 
                             ymd             : null,
-                            jowner          : null,
+                            jowner          : null, 
+                            isGlobal        : true
                         });   
-                    }
-                    else 
-                    {
-                        notifications.push({ 
-                            _type       : "SystemNotification",
-                            id          : row.id  , // row.id = message.id
-                            type        : "info",
-                            //text        : row.message ,
-                            text: _globalSubjectAndText2Message( row.subject, row.message ),
-                            when        : row.fecha
-                        });
-                    }
+                    // }
+                    // else 
+                    // {
+                    //     notifications.push({ 
+                    //         _type       : "SystemNotification",
+                    //         id          : row.id  , // row.id = message.id
+                    //         type        : "info",
+                    //         //text        : row.message ,
+                    //         text: _globalSubjectAndText2Message( row.subject, row.message ),
+                    //         when        : row.fecha
+                    //     });
+                    // }
                     
                 }
                 //#endregion
