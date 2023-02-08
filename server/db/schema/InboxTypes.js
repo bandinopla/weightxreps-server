@@ -54,6 +54,9 @@ const $types = gql`
   }
 
   type DM implements INotification & IBy & IHasText & IMessageRef & ITO {  
+
+    isGlobal:Boolean
+
     ${INotificationFields} 
     ${IByFields}
     ${IToFields}
@@ -128,6 +131,11 @@ const $types = gql`
     # DM Mode : si le pasas  dmsWithUID 
     #
     getInbox    ( newerThan:UTCDate, olderThan:UTCDate, dmsWithUID:ID )     :Inbox @auth 
+
+    # ---
+    # All notification relevant to this user
+    #
+    getNotifications    ( newerThan:UTCDate, olderThan:UTCDate  )     :Inbox @auth 
 
     # ---
     # todos los jcomments y likes a esos comments de un log en particular.
