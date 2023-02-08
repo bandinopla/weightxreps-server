@@ -18,7 +18,9 @@ const $global = {
         pass: process.env.NOTIFICATIONS_EMAIL_PASSWORD
     },
 
-    googleClientID: process.env.GOOGLE_CLIENT_ID
+    googleClientID: process.env.GOOGLE_CLIENT_ID,
+
+    tokenSecret: process.env.TOKEN_SECRET
 }
   
 export default $global; ;
