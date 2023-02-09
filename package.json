@@ -42,7 +42,8 @@
     "mysql": "^2.18.1",
     "nodemailer": "^6.6.5",
     "nodemon": "^2.0.12",
-    "stream-to-promise": "^3.0.0"
+    "stream-to-promise": "^3.0.0",
+    "twit": "^2.2.11"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "2.0.1",

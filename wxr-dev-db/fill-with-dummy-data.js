@@ -27,20 +27,18 @@ async function seed()
 {  
     console.log("Starting...")
 
-    console.log("Ressetting...");
-    const init = await query( fs.readFileSync("wxr-dev-db/sql/db-setup.sql", "utf-8") ); 
- 
-    console.log("Analizing...");
+    console.log("Deleting...");
     const res = await query(`   SHOW TABLES;
-                                SELECT CONCAT('TRUNCATE TABLE \`',table_name,'\`;') 
+                                SELECT CONCAT('DROP TABLE \`',table_name,'\`;') 
                                 FROM information_schema.tables 
-                                WHERE table_schema = '${ process.env.DB_NAME }' AND table_name != 'rpe'; 
+                                WHERE table_schema = '${ process.env.DB_NAME }' ; 
                                 SELECT 1
-                                `);
-
-    console.log("Truncating..."); 
+                                `); 
 
     await query( "SET FOREIGN_KEY_CHECKS=0;" + res[1].map( row=>Object.values(row)[0] ).join("\n") + "SET FOREIGN_KEY_CHECKS=1;" );
+
+    console.log("Recreating tables...");
+    const init = await query( fs.readFileSync("wxr-dev-db/sql/db-setup.sql", "utf-8") );  
 
 
     console.log(`Creating ${TOTAL_USERS} users...`);

@@ -20,7 +20,8 @@ const $global = {
 
     googleClientID: process.env.GOOGLE_CLIENT_ID,
 
-    tokenSecret: process.env.TOKEN_SECRET
+    tokenSecret: process.env.TOKEN_SECRET,
+    twitterConfig: process.env.TWITTER_CONFIG
 }
   
 export default $global; ;

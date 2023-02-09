@@ -245,6 +245,19 @@ CREATE TABLE IF NOT EXISTS `users_forgot` (
     PRIMARY KEY (`code`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS twitter_ids (
+  id BIGINT NOT NULL,
+  `uid` INTEGER UNSIGNED NOT NULL,
+  `type` VARCHAR(30) NOT NULL,
+  `fecha` DATE NOT NULL,
+  `granted` BOOLEAN NOT NULL,
+
+  PRIMARY KEY (id),
+  UNIQUE (id),
+  INDEX `uid_type`(`uid`,`type`),
+  INDEX `uid`(`uid`)
+);
+
 
 
 TRUNCATE TABLE `rpe`;

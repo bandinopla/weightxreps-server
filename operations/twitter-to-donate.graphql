@@ -1,0 +1,30 @@
+query GetTwitterChallenges {   
+  
+  getTwitterChallenges {
+    description
+    title
+    type 
+  }
+  
+}
+
+query GetTwitterChallengesStatuses {   
+    getTwitterChallengesStates {
+        fecha
+        granted
+        status
+        tweet
+        type
+        tweet_username
+    }
+}
+
+mutation SetTweet( $tweetID:ID, $type:TweetType)
+{
+    setTweet( id:$tweetID, type:$type )
+}
+
+mutation DeleteTweet( $tweetID:ID )
+{
+    deleteTweet( id:$tweetID )
+} 
