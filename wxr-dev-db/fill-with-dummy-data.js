@@ -27,24 +27,20 @@ async function seed()
 {  
     console.log("Starting...")
 
-    const initialSQL = fs.readFileSync("wxr-dev-db/sql/db-setup.sql", "utf-8") ; 
-
     console.log("Ressetting...");
     const init = await query( fs.readFileSync("wxr-dev-db/sql/db-setup.sql", "utf-8") ); 
  
     console.log("Analizing...");
-    const res = await query(`SET FOREIGN_KEY_CHECKS=0;
-                    SHOW TABLES;
-                    SELECT CONCAT('TRUNCATE TABLE \`',table_name,'\`;') 
-                    FROM information_schema.tables 
-                    WHERE table_schema = '${ process.env.DB_NAME }' AND table_name != 'rpe';
-                    SET FOREIGN_KEY_CHECKS=1;
-                    SELECT 1
-                    `);
+    const res = await query(`   SHOW TABLES;
+                                SELECT CONCAT('TRUNCATE TABLE \`',table_name,'\`;') 
+                                FROM information_schema.tables 
+                                WHERE table_schema = '${ process.env.DB_NAME }' AND table_name != 'rpe'; 
+                                SELECT 1
+                                `);
 
     console.log("Truncating..."); 
 
-    await query( res[2].map( row=>Object.values(row)[0] ).join("\n") );
+    await query( "SET FOREIGN_KEY_CHECKS=0;" + res[1].map( row=>Object.values(row)[0] ).join("\n") + "SET FOREIGN_KEY_CHECKS=1;" );
 
 
     console.log(`Creating ${TOTAL_USERS} users...`);
@@ -145,6 +141,54 @@ async function seed()
         console.log(` %${Math.round( ((i+1)/TOTAL_USERS)*100 ) } done... ok!\n`);
 
     }
+
+
+    //
+    // send some likes & comments
+    //
+    console.log("Inserting some likes & comments on the logs...");
+
+    const logids = await query(`SELECT id, uid FROM logs`);
+    const likes = [];
+
+    for (let l = 0; l < logids.length; l++) 
+    {
+        let uid = 1 + Math.floor( Math.random()*TOTAL_USERS );
+        const { id:logid, uid:loguid } = logids[l]; 
+
+        if( uid==loguid ){
+            if( ++uid >= TOTAL_USERS )
+            {
+                uid = 1;
+            }
+        }
+
+        //
+        // Likes
+        //
+        await Resolvers.Mutation.likeJournalLog( null, { target:logid.toString() }, { session: { id: uid }} );
+
+
+        //
+        // Comment something
+        //
+        if( Math.random()>0.6 )
+        {
+            //
+            // as a direct message or a public journal comment
+            //
+            const asDM = Math.random()>0.8;
+
+            // add a comment
+            await Resolvers.Mutation.sendMessage( null, {
+                message: generateLoremIpsum(5 + Math.floor(Math.random()*10)),
+                type: asDM? "DM" : "JCOMMENT",
+                target: ( asDM? loguid : logid ).toString()
+            },
+            { session: { id: uid }});
+        } 
+    }  
+
 
     console.log("ALL DONE!")
 }
