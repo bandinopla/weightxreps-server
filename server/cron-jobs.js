@@ -1,5 +1,6 @@
 import { query } from "./db/connection.js";
 import {insertMessage} from "./db/resolvers/inbox.js";
+import { TwitterCronJob } from "./db/resolvers/Twitter.js";
 
 
 
@@ -141,4 +142,5 @@ const SendHappyBdayDMs = async ()=> {
 export const StartCronJobs = () => {
     UpdateDaysLeftAsSupporter();
     SendHappyBdayDMs();
+    TwitterCronJob();
 }

@@ -17,7 +17,9 @@ var $pool = {
                 database          : config.dbname,
                 port              : config.port,
                 multipleStatements: true,
-                timezone:"Z"
+                timezone:"Z",
+                supportBigNumbers: true,
+                bigNumberStrings: true
             });
         }
 
@@ -35,7 +37,7 @@ var $pool = {
  
   
 
-  export const query = (sql, parameters) => {  
+  export const query = (sql, parameters, rawError ) => {  
 
     return new Promise( (resolve, reject)=>{ 
 
@@ -53,8 +55,13 @@ var $pool = {
     
                 if (error) 
                 {
+                    if( rawError )
+                    {
+                        return reject(error);
+                    }
+                    
                     $logError( error );
-                    console.log( error ); 
+                    console.log( { error } ); 
                     return reject( new Error("Error while talking to the database...") );
                 }
                 resolve( results ); 

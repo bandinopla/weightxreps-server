@@ -16,6 +16,7 @@ import Settings from "./Settings.js";
 import Support from "./Support.js";
 import Achievements from "./Achievements.js";
 import Videos from "./Videos.js";
+import TWITTER_SCHEMA from "./Twitter.js";
 
 
 const baseTypeDefs = gql`
@@ -97,6 +98,7 @@ const schema = makeExecutableSchema({
             , Support
             , Achievements
             , Videos
+            , TWITTER_SCHEMA
             //, TestSubscription
           ]
 
