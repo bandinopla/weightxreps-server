@@ -10,7 +10,7 @@ export const TWITTER_CHALLENGES = {
 		"Tweet this = supporter for a week!",
 		`Tweet this ↓
         -----------------
-         "%VALUE%" 
+         %VALUE% 
         -----------------
         ...and keep that tweet online for at least %DAYS% days and you will be granted supporter status for ~WEEK.`
 	).config("Check out weightxreps.net it is a cool site to log your workouts!", 6, 1)
@@ -21,7 +21,7 @@ export const TWITTER_CHALLENGES = {
 		"Tweet this = supporter for A MONTH!",
 		`Tweet this ↓
         -----------------
-         "%VALUE%" 
+         %VALUE% 
         -----------------
         ...and keep that tweet online for at least %DAYS% days and you will be granted supporter status for a ~MONTH`
 
