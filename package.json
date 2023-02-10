@@ -8,7 +8,7 @@
     "pack": "node export-esm-to-cjs.cjs",
     "exportschema": "graphql-codegen --config codegen.yml && cp ./move-to-frontend/*.* ../client/src/data",
     "update-sbd-rank": "node sbd-rank/update-sbdrank-data.js",
-    "reset-db":"node wxr-dev-db/fill-with-dummy-data.js"
+    "reset-db": "node wxr-dev-db/fill-with-dummy-data.js"
   },
   "type": "module",
   "repository": {
@@ -56,7 +56,6 @@
     "gulp": "^4.0.2",
     "gulp-ssh": "^0.7.0",
     "gulp-util": "^3.0.8",
-    "javascript-obfuscator": "^2.19.1",
     "request": "^2.88.2",
     "unzipper": "^0.10.11",
     "vinyl-ftp": "^0.6.1"

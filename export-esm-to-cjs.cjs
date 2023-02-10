@@ -1,6 +1,4 @@
-const esm2cjs = require('esm-cjs'); 
-var JavaScriptObfuscator = require("javascript-obfuscator");
-var $obConfig = require("./obf-config.json");
+const esm2cjs = require('esm-cjs');  
 
 var glob = require('glob');
 var { copyFileSync, unlinkSync, rmdirSync, rmSync, mkdirSync, readFileSync, writeFileSync } = require("fs");
@@ -32,22 +30,13 @@ glob('./server/**/*', function(err, files) {
             try 
             {
                 var output = esm2cjs(contents);
+
+                writeFileSync( nfile, output );
             }
             catch (e) {
                 console.log( { file, error:e })
-            }
+            }  
 
-
-            try 
-            {
-                output = JavaScriptObfuscator.obfuscate(output, $obConfig).getObfuscatedCode();
-            }
-            catch(e) {
-                console.log("Obfuscation error", {error:e});
-            }
-            
-
-            writeFileSync( nfile, output );
         }
 
     });
@@ -70,11 +59,4 @@ writeFileSync("./server-to-upload/package.json", JSON.stringify(packageJson, nul
 
 
 
-console.log("Done...");
-
-// const input = `export default AccessRestrictionSchemaTransformer(
-//     UserInfoSchemaTransformer(schema)
-//   );`
-// const options = { quote: "double" }; // see details below
-// const output = esm2cjs(input );
-// console.log(output);
+console.log("Done..."); 
