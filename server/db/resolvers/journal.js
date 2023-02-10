@@ -933,6 +933,49 @@ export const JournalResolver = {
             // exercises = await __getUserExercises(myid); 
             exercises = await ExercisesResolver.Query.getExercises( parent, { uid:myid }, context );
 
+            
+            if( args.showMissing )
+            { 
+                //
+                // if the exercise referenced can't be found, flag it as missing.
+                // this should not happen but just in case...
+                //
+                rows.filter( row=>row.__typename=='JEditorEBlock' && !exercises.find(edef=>edef.e.id==row.e))
+
+                    //
+                    // create a dummy exercise for this broken link
+                    //
+                    .forEach( eblock => {
+
+                        let ex = exercises.find(edef=>edef.e.id==eblock.e);
+
+                        if( !ex )
+                        {
+                            ex = {
+                                e: {
+                                    id: eblock.e,
+                                    name: `Missing Exercise (id:${eblock.e})`
+                                },
+                                days:0, reps: 0
+                            };
+
+                            exercises.push(ex)
+                        }
+
+                    });
+            }
+            else 
+            {
+                rows = rows.filter( row=>row.__typename!='JEditorEBlock' || exercises.find(edef=>edef.e.id==row.e));
+            }
+            
+            //
+            // remove empty sets... again it should not happen but just in case...
+            //
+            // rows = rows.filter( row=>row.__typename!='JEditorEBlock' || row.sets.length>0 );
+
+
+
             return {
                 did     : rows, 
                 etags   : getAllOfficialETags(),
