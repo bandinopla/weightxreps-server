@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS `social-links` (
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `deleted` BOOLEAN NOT NULL,
-    `email` VARCHAR(100) NOT NULL,
+    `email` VARCHAR(100) NOT NULL, 
     `uname` VARCHAR(80) NOT NULL,
     `supporterLevel` FLOAT NOT NULL,
     `days_left_as_supporter` INTEGER NOT NULL,
@@ -218,6 +218,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `joined` DATE NOT NULL,
     `rank` INTEGER UNSIGNED NOT NULL DEFAULT 0,
     `pass` VARCHAR(32) NOT NULL,
+    `phoneHASH` VARCHAR(32) NULL,
     `bday` DATE NULL,
     `country_code` VARCHAR(10) NULL,
     `usekg` BOOLEAN NOT NULL DEFAULT false,
@@ -231,6 +232,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `blockedusers` VARCHAR(500) NOT NULL,
 
     INDEX `isDeleted`(`deleted`),
+    INDEX `phoneHASH`(`phoneHASH`),
     INDEX `last_log`(`last_log`),
     INDEX `supporterLevel`(`supporterLevel`),
     INDEX `uname`(`uname`),
