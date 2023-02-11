@@ -14,8 +14,7 @@ query GetTwitterChallengesStatuses {
         granted
         status
         tweet
-        type
-        tweet_username
+        type 
     }
 }
 

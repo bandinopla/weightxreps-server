@@ -22,7 +22,6 @@ const TWITTER_SCHEMA = gql`
     fecha: UTCDate!
     granted: Boolean
     status: String
-    tweet_username: String
   }
 
   extend type Query {   
