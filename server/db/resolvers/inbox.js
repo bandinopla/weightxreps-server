@@ -701,9 +701,7 @@ export const InboxResolvers = {
     //
     rows = [...rows, ...likesRows].sort((a, b) => b.fecha - a.fecha);  
  
-
-
-    if( rows.length==0 ) return null;  
+ 
 
     //
     // convert to graphql format
