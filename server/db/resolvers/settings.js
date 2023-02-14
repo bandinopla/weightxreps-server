@@ -237,7 +237,7 @@ export const SettingsResolver = {
 
             if( !data )
             {
-                throw new Error("Invalid, corrupted (missing or enexpected characters) or expired key value (keys older than a month will expire). ");
+                throw new Error("Invalid, corrupted (missing or unexpected characters) or expired key value (keys older than a month will expire) ");
             }
 
             const unsub = await $settings.find(setting=>setting.id=='emails-allowed').__setValue({ id: data.uid }, 0);
