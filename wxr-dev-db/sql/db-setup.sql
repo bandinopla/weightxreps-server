@@ -260,6 +260,13 @@ CREATE TABLE IF NOT EXISTS twitter_ids (
   INDEX `uid`(`uid`)
 );
 
+CREATE TABLE IF NOT EXISTS `users_notifications_settings` (
+  `uid` int UNSIGNED NOT NULL,
+  `email` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (uid),
+  UNIQUE (uid) 
+);
+
 
 
 TRUNCATE TABLE `rpe`;

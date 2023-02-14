@@ -1,7 +1,10 @@
 import { query, transaction } from "../connection.js";
 import { dateASYMD } from "../../utils/dateASYMD.js";
 import { getAvatarHash } from "../../utils/get-avatar-hash.js"; 
-
+import { sendEmail } from "../../utils/send-email.js";
+import { escapeHTML } from "../../utils/escapeHTML.js";
+import EmailTemplate from "../../email/template.js";
+import {packAsToken} from "../../utils/token.js";
 
 /**
  * 
@@ -1191,7 +1194,7 @@ async function postComment( o )
     const isDM  = !o.logid;   
     var tos     = [o.touid];
 
-    const jcommentSubject   = (uname, ymd)=>`Comment on ${uname}'s ${dateASYMD(ymd)}`;
+    const jcommentSubject   = (uname, ymd)=>`Comment on ${uname}'s ${dateASYMD(ymd, true)}`;
 
     //
     // si no es un DM le damos bola a las menciones...
@@ -1239,13 +1242,78 @@ async function postComment( o )
     //
     // enviamos...
     //
-    return await _insertMessage( tos , { 
-        uid         : o.by,
-        subject     : isDM? "DM" : jcommentSubject( o.jownerUname, o.ymd ),
-        message     : o.message, 
-        logid       : o.logid || 0 , 
-        parentid    : o.parentid || 0
-    });    
+    const subject = isDM? "DM" : jcommentSubject( o.jownerUname, o.ymd );
+  
+    //
+    // obtain info from all users involved...
+    // 
+    const users = await query(`SELECT uname, id, blockedusers FROM users WHERE id=? OR id IN (?)`, [ o.by, tos ]);
+    
+    if( users.length )
+    {
+        //
+        // checks if "who" blocked "blocked"
+        //
+        const isBlocked = (who, blocked)=> ( users.find(row=>row.id==who)?.blockedusers ?? "" )
+                                            .toLowerCase().trim().indexOf( 
+                                                ( users.find(row=>row.id==blocked)?.uname ?? ":" ).toLowerCase().trim()
+                                            )>-1
+
+        //
+        // make sure the author of the email haven't blocked the target of the email and vice versa.
+        //
+        const sendToUIDs = tos.filter( uid=>!isBlocked(o.by, uid) && !isBlocked(uid, o.by) );
+
+        if( sendToUIDs.length )
+        {
+            //
+            // insert message in DB
+            //
+            const msg = await _insertMessage( sendToUIDs , { 
+                uid         : o.by,
+                subject     ,
+                message     : o.message, 
+                logid       : o.logid || 0 , 
+                parentid    : o.parentid || 0
+            }); 
+
+            //
+            // send vía email but dont wait for it...
+            //
+            try
+            {
+                const byUname = users.find(row=>row.id==o.by).uname;
+
+                // intentional no await.
+                sendEmail( sendToUIDs, `[${ byUname }] sent you a ${o.logid?"comment":"message"}`,  
+
+                                            //
+                                            // email body...
+                                            //
+                                            to => EmailTemplate(`Hello <strong>${ users.find(row=>row.id==to).uname }</strong>`,
+                                                                `<a href="https://weightxreps.net/journal/${byUname}"></a> sent you:`,
+                                                                escapeHTML( o.message ),
+                                                                "Go to message",
+                                                                `http://weightxreps.net/${isDM?"":"journal/"+o.jownerUname+"/"+dateASYMD(o.ymd, true)}`,
+                                                                "http://weightxreps.net/unsub?key=" + packAsToken({ uid:to })
+                                                                ) 
+                          );
+            }
+            catch(e)
+            {
+                //ignore email errors...
+                console.log(e)
+            }
+
+            return msg; 
+        } 
+
+        //
+        //if we get here, it means someone blocked someone...
+        //
+    }  
+
+    throw new Error("Message can't be send :(");
  
 }
 

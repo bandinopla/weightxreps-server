@@ -86,3 +86,7 @@ mutation SendVerificatonCode( $id:ID!, $code:String! ) {
     } 
 }
  
+
+mutation UnsubFromEmails( $token:String ) {
+    unsubFromEmails( token:$token )
+}

@@ -4,7 +4,7 @@ import extractUserDataFromRow from "../../utils/extractUserDataFromRow.js";
 import md5 from "md5";
 import { isEmail } from "./settings/EmailSetting.js";
 import { getOfficialExercises } from "../../utils/ename2type.js";
-import { sendEmailNow, sendNotification } from "../../utils/send-email.js";
+import { sendEmailNow, sendEmail } from "../../utils/send-email.js";
 import { sendWelcomeMessage } from "./inbox.js";
 import { LoginWithGoogle } from "./session-login-google.js";
 import { LoginWithFirebase } from "./session-login-firebase.js";
@@ -304,7 +304,7 @@ const forgot = async (parent, args, context) => {
     {
 
         //
-        await sendNotification(urow[0].id, "Temporary password!", "You recently forgot your password and requested a reminder. A new temporary password was created so you can login again. <br/>This is the new password: <br/><h6><strong>"+tempPassword+"</strong></h6>");
+        await sendEmail(urow[0].id, "Temporary password!", "You recently forgot your password and requested a reminder. A new temporary password was created so you can login again. <br/>This is the new password: <br/><h6><strong>"+tempPassword+"</strong></h6>");
         //
 
         return true;

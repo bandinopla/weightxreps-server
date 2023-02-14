@@ -100,6 +100,7 @@ const $types = gql`
     setSetting( id:ID!, value:SettingValue ):UserSetting @auth @UserMustAllow
     sendVerificationCode( id:ID!, code:String! ):UserSetting @auth @UserMustAllow 
     
+    unsubFromEmails( token:String ): Boolean
   }
 `;
 

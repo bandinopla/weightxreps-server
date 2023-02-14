@@ -56,7 +56,7 @@ export const sendEmailNow = async ( to, subject, message )=>{
             to ,   
             replyTo: "pablo@weightxreps.net",
             subject, // Subject line 
-            html: message, // html body
+            html: message.trim(), // html body
           });
     }
     catch(e)
@@ -67,49 +67,56 @@ export const sendEmailNow = async ( to, subject, message )=>{
     return info;
 }
 
-/** 
- * Intenta enviar el mensaje de una primero...
- * Y si falla, lo deja en el queue...
- * 
- * @param {number} touid ID of the user
+/**   
+ * @param {number|number[]} touid ID of the user/s to send the email to...
  * @param {string} subject 
- * @param {string} message 
+ * @param {string|(to:number)=>string} message 
+ * @param {string} optionalEmail Email to be used in case target has no registered email in DB and target is only 1 user. 
  */
-export const sendNotification = async ( touid, subject, message, optionalEmail ) => {
+export const sendEmail = async ( touid, subject, message, optionalEmail ) => {
 
     // primero intentar enviar el mensaje...
-    var email = await query(`SELECT email FROM users WHERE id=?`, [touid]);
+    const tos = Array.isArray(touid)? touid : [touid];
 
-    if( email.length )
+    //
+    // obtain the emails of targets and also check if they allow emails.
+    //
+    let emails = await query(`SELECT A.id, A.email, B.email AS allowsEmails
+                                FROM users AS A 
+                                LEFT JOIN users_notifications_settings AS B ON B.uid=A.id
+                                
+                                WHERE A.id IN (?)`, [ tos ]) 
+                                ;
+
+    //
+    // if we are sending to just 1 target but it has no email... use the optionalEmail or fail.
+    //
+    if( tos.length==1 && !emails?.[0].email  )
     {
-        let to = email[0].email;
-
-        if( to=="" ) //no tiene email
-        { 
-            if( optionalEmail ) //pero nos pasaron uno opcional
-            {
-                to = optionalEmail;
-            }
-            else 
-            {
-                throw new Error("NOEMAIL");
-            } 
-        }
-
-        var sent = await sendEmailNow( to, subject, message );
-
-        if( sent.accepted?.length>0 )
+        if( optionalEmail )
         {
-            //console.log("MAIL SENT!", to);
-            //OK!
-            return;
+            emails = [{ id:touid, email:optionalEmail, allowsEmails:1 }]
         }
         else 
         {
-            throw new Error("Oops! Mail sender unexpectedly... try again :/");
-        }
+            throw new Error("NOEMAIL");
+        } 
+    } 
+
+    if( emails.length )
+    { 
+        return await Promise.all( 
+                                    emails
+                                          // only if allows emails
+                                          .filter( row=>row.allowsEmails!==0 ) 
+
+                                          //send...
+                                          .map( row=>sendEmailNow( row.email, 
+                                                                    subject, 
+                                                                    typeof message == 'function' ? message(row.id) : message
+                                                                    ))
+        );
     }
 
-    throw new Error("Twilight Zone Error... referenced user not found.")
- 
+    throw new Error("Twilight Zone Error... referenced user/s not found...");
 } 

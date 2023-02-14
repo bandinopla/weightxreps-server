@@ -16,13 +16,15 @@ import { RPESetting } from './settings/RPESetting.js';
 import { DeleteAccountSetting } from './settings/DeleteAccountSetting.js';
 import { BlockUsersSetting } from './settings/BlockUsersSetting.js';
 import md5 from 'md5';
-import { sendNotification } from '../../utils/send-email.js';
+import { sendEmail } from '../../utils/send-email.js';
 import { ChangeUsernameSetting } from './settings/ChangeUsernameSetting.js';
 import { SocialMediaSetting } from './settings/SocialMediaSetting.js';
- 
+import { RecieveEmailsSetting } from './settings/RecieveEmailsSetting.js';
+import { extractTokenData } from "../../utils/token.js";
 
 const $settings = [
     new EmailSetting(),
+    new RecieveEmailsSetting(),
     new PasswordSetting(),
     new DOBSetting(),
     new CountryCodeSetting(),
@@ -118,7 +120,7 @@ export const SettingsResolver = {
                         //
                         try
                         {
-                            await sendNotification( user.id, 
+                            await sendEmail( user.id, 
                                                     "Verification Code: "+secretCode, 
                                                     "You recently changed a setting in your account that requires a code verification. This is the code you must copy & paste: <br/><h1><strong>"+secretCode+"</strong></h1>",
                                                     
@@ -226,6 +228,22 @@ export const SettingsResolver = {
                 return await setting.setValue( userInfo, newValue );
             }  
             
-        } 
+        },
+
+
+        unsubFromEmails: async (_, { token }, context ) => {
+
+            const data = extractTokenData( token );
+
+            if( !data )
+            {
+                throw new Error("Invalid, corrupted or expired key value");
+            }
+
+            const unsub = await $settings.find(setting=>setting.id=='emails-allowed').__setValue({ id: data.uid }, 0);
+
+            return unsub.affectedRows==1;
+
+        }
     }
 }
