@@ -1291,7 +1291,7 @@ async function postComment( o )
                                             // email body...
                                             //
                                             to => EmailTemplate(`Hello <strong>${ users.find(row=>row.id==to).uname }</strong>`,
-                                                                `<a href="https://weightxreps.net/journal/${byUname}"></a> sent you:`,
+                                                                `<a href="https://weightxreps.net/journal/${byUname}">${byUname}</a> sent you:`,
                                                                 escapeHTML( o.message ),
                                                                 "Go to message",
                                                                 `http://weightxreps.net/${isDM?"":"journal/"+o.jownerUname+"/"+dateASYMD(o.ymd, true)}`,
