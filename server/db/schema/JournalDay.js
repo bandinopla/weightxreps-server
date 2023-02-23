@@ -50,6 +50,8 @@ const $types = gql`
     bw:Float 
     eblocks:[EBlock]
     exercises:[ERef]
+    utags:[UTag]
+    utagsValues:[UTagValue]
   }
  #------------------------------------------------------------
  
@@ -73,9 +75,14 @@ const $types = gql`
     did:[EBlock]
  }
 
+
+
  type JRangeData {
+   from:YMD 
+   to:YMD
    exercises:[Exercise]!
    days:[JRangeDayData]
+   utags:UTagsUsed 
  }
 
  #-----------------------------------------------------------------------------------
@@ -111,12 +118,13 @@ const $types = gql`
      newExercise:String!
  }
 
- union JeditorRow = JEditorText | JEditorEBlock | JEditorDayTag | JEditorBWTag | JEditorNewExercise
+ union JeditorRow = JEditorText | JEditorEBlock | JEditorDayTag | JEditorBWTag | JEditorNewExercise | UTagValue
 
  type JEditorData {
      did:[JeditorRow]
      exercises:[ExerciseStat]! 
      etags:[String]!
+     utags:[UTag]
      baseBW:Float
  }
 

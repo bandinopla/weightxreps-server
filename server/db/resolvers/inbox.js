@@ -1291,7 +1291,8 @@ async function postComment( o )
                                             // email body...
                                             //
                                             to => EmailTemplate(`Hello <strong>${ users.find(row=>row.id==to).uname }</strong>`,
-                                                                `<a href="https://weightxreps.net/journal/${byUname}">${byUname}</a> sent you:`,
+                                                                //`<a href="https://weightxreps.net/journal/${byUname}">${byUname}</a> sent you:`,
+                                                                `${ byUname } wrote:`, //<-- IDK why the link above doesn't show in gmail...
                                                                 escapeHTML( o.message ),
                                                                 "Go to message",
                                                                 `http://weightxreps.net/${isDM?"":"journal/"+o.jownerUname+"/"+dateASYMD(o.ymd, true)}`,

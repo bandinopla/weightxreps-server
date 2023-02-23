@@ -93,15 +93,40 @@ async function seed()
 
         for (let logIndex = 0; logIndex < LOGS_PER_USER; logIndex++) 
         {
-            const rest = Math.round( Math.random()*3 );
+            const rest = 1 + Math.round( Math.random()*3 );
             
-            today.setDate(today.getDate() - rest);
+            today.setDate(today.getDate() + rest);
 
             const logYMD = dateASYMD(today, true);
 
             logRows.push({ on:logYMD });
             logRows.push({ bw:bwToDefaultUnit, lb:usekg?0:1 }); 
+
+            //
+            // add a random tag
+            //
+            if( Math.random()>0.5 )
+            {
+                logRows.push({ tag:"I feel like", value: ["shit", "superman", "quitting", "pure success"][ Math.floor(Math.random()*4) ] , type:"TAG_STRING" });
+            }
+
             logRows.push({ text:generateLoremIpsum(10) });
+
+            //
+            // add a random tag
+            //
+            if( Math.random()>0.5 )
+            {
+                logRows.push({ tag:"Planks for time", value: ["30", "10", "60" ][ Math.floor(Math.random()*3) ] , type:"TAG_TIME_sec" });
+            }
+
+            //
+            // add a random tag
+            //
+            if( Math.random()>0.5 )
+            {
+                logRows.push({ tag:"Stretching session", value: ["1", "2.5", "3" ][ Math.floor(Math.random()*3) ] , type:"TAG_TIME_h" });
+            }
 
             const total_exercises_in_workout = Math.round( Math.random()*MAX_EXERCISES_PER_JOURNAL );
 

@@ -11,6 +11,7 @@ import { SaveJournalResolver } from "./save-journal.js";
 import { rpePercentLeftJoin } from "./rpe.js";
 import { decode } from 'html-entities';
 import { ExercisesResolver } from "./exercises.js";
+import { getUTags, getUTagsRangeData } from "./tags.js";
 
 /**
  * Devuelve la info del usuario si no estamos ni bloqueados ni el usuario que se pide es privado.
@@ -584,13 +585,17 @@ export const JournalResolver = {
             //#endregion
             }
 
+            const [ utags, utagsValues ] = await getUTags(uid, [ log.id ], true);
+
             return {
-                id      : log.id,
-                log     : log.log,
-                fromMobile : log.fromMobile==1,
-                bw      : context.userInfo.canShowBW()? log.bw : 0, // El BW se saca siempre del journal post... || context.userInfo.bw
+                id          : log.id,
+                log         : log.log,
+                fromMobile  : log.fromMobile==1,
+                bw          : context.userInfo.canShowBW()? log.bw : 0, // El BW se saca siempre del journal post... || context.userInfo.bw
                 eblocks,
-                exercises
+                exercises,
+                utags,
+                utagsValues
             }
 
         },
@@ -749,25 +754,28 @@ export const JournalResolver = {
 
             });//end forEach erows
 
+
+
             // si no hay días, no hay nada.
             //
             //
-            if( days.length==0 )
+            if( days.length )
             {
-                return;
-            }
-
-            //
-            // le mete "eff" & "int"  a cada EROW...
-            //
-            await __jrangeCalculateEffInt( eid2PRs, exercises, days );
+                //
+                // le mete "eff" & "int"  a cada EROW...
+                //
+                await __jrangeCalculateEffInt( eid2PRs, exercises, days );
+            } 
+            
             
             //
             // oka!
             //
             return {
+                from, to,
                 exercises,
-                days
+                days,
+                utags: await getUTagsRangeData( uid, from, to )
             }
         },
 
@@ -788,8 +796,9 @@ export const JournalResolver = {
                                                     : `SELECT * FROM logs WHERE uid=? AND fecha_del_log BETWEEN ? AND ? ORDER BY fecha_del_log ASC`, [ myid, from, to ]);
             
             // logids de los que hay que cargar erows...
-            const logids    = [];
-            const eids      = [];
+            const logids                    = [];
+            const eids                      = []; 
+            const [knownUTags, utagsValues] = await getUTags( myid, logs.map( log=>log.id ) );
 
             // get erows
             //const erows     = await query(`SELECT * FROM erows WHERE logid IN (?) ORDER BY id ASC`, [ logids ]);
@@ -806,10 +815,10 @@ export const JournalResolver = {
 
                 const str       = log.log;
 
-                if( !str.trim().length )
-                {
-                    return; // EMPTY log, skip...
-                }
+                // if( !str.trim().length )
+                // {
+                //     return; // EMPTY log, skip...
+                // }
 
                 // Day Tag
                 rows.push({ __typename:"JEditorDayTag", on:log.fecha_del_log });
@@ -822,8 +831,8 @@ export const JournalResolver = {
                     rows.push({ __typename:"JEditorBWTag", bw: lastBW   });
                 }
  
-                //#region ETAGS
-                const regex     = /EBLOCK:(\d+)/gm;
+                //#region UTAGS
+                const regex     = /(UTAG|EBLOCK):(\d+)/gm;
                 
                 let m;
                 
@@ -833,6 +842,9 @@ export const JournalResolver = {
                 // por cada EBLOCK detectado..
                 //
                 while ((m = regex.exec(str)) !== null) { 
+
+                    const tagType = m[1];
+                    const tagID = parseInt(m[2]);
 
                     // This is necessary to avoid infinite loops with zero-width matches
                     if (m.index === regex.lastIndex) {
@@ -846,20 +858,43 @@ export const JournalResolver = {
                     {
                         rows.push({ __typename:"JEditorText", text: txt });
                     }
-                    
-                    const eid = parseInt( m[1] );
 
                     lastIndex = m.index + m[0].length;
 
-                    // LOGID
-                    logids.indexOf(eid)<0 && logids.push( log.id );
+                    if( tagType=='EBLOCK')
+                    {
+                        const eid = tagID; 
 
-                    // EID
-                    eids.indexOf(eid)<0 && eids.push(eid);
-                    
-                    rows.push( { __typename:"JEditorEBlock", e:eid, block:blockIndex,  logid:log.id, sets:[] } );
+                        // LOGID
+                        logids.indexOf(log.id)<0 && logids.push( log.id );
 
-                    blockIndex++;
+                        // EID
+                        eids.indexOf(eid)<0 && eids.push(eid);
+                        
+                        rows.push( { __typename:"JEditorEBlock", e:eid, block:blockIndex,  logid:log.id, sets:[] } );
+
+                        blockIndex++;
+                    }
+
+                    //
+                    // ignore "broken" references (happens when you delete a tag)
+                    //
+                    else if( tagType=='UTAG'  )
+                    {
+                        //&& knownUTags.find(utag=>utag.id==tagID)
+
+                        const tval = utagsValues.find(t=>t.id==tagID);
+
+                        if( tval )
+                        { 
+                            rows.push( {
+                                ...tval,
+                                __typename: "UTagValue"
+                            });
+                        } 
+                        
+                    } 
+                        
                 } 
  
                 const txt = str.substr(lastIndex).trim();
@@ -881,8 +916,8 @@ export const JournalResolver = {
             {
                 rows.push({ __typename:"JEditorDayTag", on:args.ymd }); 
                 lastBW && rows.push({ __typename:"JEditorBWTag", bw:lastBW });
-            }
-
+            } 
+            
 
             // hay que cargar erows??
             if( eids.length )
@@ -890,14 +925,18 @@ export const JournalResolver = {
                 // ordenarlos por ID nos asegura que esten en orden de aparicion. El orden por día ya se hizo arriba...
                 const erows     = await query(`SELECT * FROM erows WHERE logid IN (?) ORDER BY id ASC`, [ logids ]);
 
+                console.log( logids )
+
                 erows.forEach( erow=>{
 
                     const eblock = rows.find(row=> row.logid==erow.logid && row.e==erow.eid && row.block==erow.block );
 
+                    console.log(erow)
+
                     if(!eblock)
                     {
                         // wtf?????? Si el jlog no hizo referencia a este erow, significa que está "perdido". Nada apunta a él.
-                         
+                        console.log("WTF??? LOST", erow)
                         return;
                     }
 
@@ -979,6 +1018,7 @@ export const JournalResolver = {
             return {
                 did     : rows, 
                 etags   : getAllOfficialETags(),
+                utags   : knownUTags,
                 baseBW,
                 exercises
             }
@@ -1053,7 +1093,7 @@ const _getYMDfromRange = ( ymd, range, userInfo, requestorUID )=>{
 
 
     let d = new Date( ymd2date(ymd) );
-        d.setDate( d.getDate() - range*6 );
+        d.setDate( d.getDate() - range*7 + 1 );
     
     return dateASYMD( d );
 }

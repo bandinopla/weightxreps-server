@@ -268,6 +268,30 @@ CREATE TABLE IF NOT EXISTS `users_notifications_settings` (
 );
 
 
+CREATE TABLE IF NOT EXISTS `tags` (
+  `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uid` INTEGER UNSIGNED NOT NULL, 
+  `name` VARCHAR(30) NOT NULL,
+
+  PRIMARY KEY (id),
+  INDEX tags_of (uid) 
+);
+
+CREATE TABLE IF NOT EXISTS `tags_used` (
+  `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uid` INTEGER UNSIGNED NOT NULL,
+  `logid` INTEGER UNSIGNED NOT NULL,
+  `tagid` INTEGER UNSIGNED NOT NULL,
+  `type` VARCHAR(12) NOT NULL,
+  `value` VARCHAR(12) NOT NULL,
+
+  PRIMARY KEY (id),
+  INDEX tags_used_in (uid, logid) ,
+  INDEX tag_locator (tagid),
+  INDEX tag_type (`type`)
+);
+
+
 
 TRUNCATE TABLE `rpe`;
 

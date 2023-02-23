@@ -3,6 +3,7 @@ import { dateASYMD, ymd2date } from "../../utils/dateASYMD.js";
 import { lb2kg } from "../../utils/lb2kg.js";
 import { query, transaction } from "../connection.js";
 import { __recalculateExerciseStats } from "./exercises.js"; 
+import { addEditorUtags, createNewTagsIfAny, deleteUnusedUTags, deleteUTagsFromLog, getUTagId, getUTags, preventDuplicatedUTagsOnSave, utagTokenToText } from "./tags.js";
 
 
 
@@ -29,6 +30,7 @@ export const SaveJournalResolver = {
          * types:
          *      { on:ymd }
          *      { bw:number }
+         *      { tag:string, type:string, value:number }
          *      { text:string }
          *      { eid, erows:[ { w:{v,lb,usebw:1|-1 }, r, s, c, rpe } ] } 
          *                      w:puede ser un array
@@ -41,8 +43,9 @@ export const SaveJournalResolver = {
         //
         //1) obtener enames (para saber si esta referenciando valid enames)
         //
-        const exercises = await query(`SELECT id, nombre FROM exercises WHERE uid=?`, [myId]);
-        const knownEids = exercises.map(r=>r.id); //<--- puede ser empty si es la primera vez que guarda algo...
+        const exercises         = await query(`SELECT id, nombre FROM exercises WHERE uid=?`, [myId]);
+        const [utags]           = await getUTags( myId );
+        const knownEids         = exercises.map(r=>r.id); //<--- puede ser empty si es la primera vez que guarda algo...
         
         //
         // exercises que hay que crear holder...
@@ -112,7 +115,14 @@ export const SaveJournalResolver = {
 
                                     else 
                                     {
-                                        lastDay.did.push( row )
+                                        //
+                                        // in the case of UTAGS prevent duplicates
+                                        //
+                                        if( !row.tag || preventDuplicatedUTagsOnSave( row, lastDay.did ) )
+                                        {
+                                            lastDay.did.push( row ); 
+                                        }
+                                        
                                     }
                                 }
 
@@ -125,6 +135,8 @@ export const SaveJournalResolver = {
         //
         const tran      = await transaction();  
 
+
+        const recalculateEStatsOf   = []; //<--- EIDs de los exercises para recalcular
 
         try
         {
@@ -151,11 +163,25 @@ export const SaveJournalResolver = {
             }), myId );
 
 
+            //#region TAGS
+
+                /**
+                 * all tag tokens from this save operation...
+                 */
+                const tagTokens = onDayDid.flatMap(day=>day.did).filter(row=>row.tag);
+
+                //
+                // UTAGS. If any UTAG is new, it will be created.
+                //
+                await createNewTagsIfAny( tran.query, myId, tagTokens, utags ); 
+ 
+            //#endregion
+
+
             //
             // acá voy a meter todos los erows a insertar en la tabla erows, con los campos nombrados con el nombre de la columna en mysql
             //
-            const erowsToInsert         = [];
-            const recalculateEStatsOf   = []; //<--- EIDs de los exercises para recalcular
+            const erowsToInsert         = [];  
 
             //
             // por cada día...
@@ -168,6 +194,7 @@ export const SaveJournalResolver = {
                 var bw                      = day.bw; //<-- puede ser null o 0...
                 var blockIndex              = 0;
                 const dayErows              = []; //<-- aca ponemos los erows del día...
+                const dayUTags              = [];
 
                 //
                 // si es la fecha de hoy... recordar este BW (que está en Kilos) como el ultimo BW...
@@ -185,6 +212,55 @@ export const SaveJournalResolver = {
                 var logid           = log[0]?.id; //<-- puede ser null... 
                 const logOldErows   = logid>0? await query(`SELECT DISTINCT eid FROM erows WHERE logid=?`, [logid]) : null;
 
+
+                //#region >>> Resolve LOG ID
+                if( logid )
+                { 
+                        // delete old erows
+                        await tran.query(`DELETE FROM erows WHERE logid=?`,[ logid ]); 
+
+                        // delete old tags
+                        await deleteUTagsFromLog( tran.query, logid ); 
+ 
+                        // 
+                        if( markedForDeletion )
+                        {
+
+                            // TODO: if something was created like exercises or tags, we should roll back those inserts....
+
+                            //
+                            // borrar log
+                            //
+                            await __deleteLog( tran, logid ); 
+                            continue;
+                        }
+                }
+                else if( !markedForDeletion )
+                {
+                        // insert new
+                        const newLog = await tran.query(`INSERT INTO logs SET ?`, {
+                            uid                 : myId,
+                            ultima_modificacion : new Date(),
+                            fecha_del_log       : ymd,
+                            bw                  : bw || 0, 
+                            fromMobile          : 0
+                        });
+
+                        logid = newLog.insertId;
+
+                        if( !logid )
+                        {
+                            throw new Error("Weird... failed to create log "+ymd+" for some reason. Unexpected...")
+                        } 
+                }
+                else 
+                {
+                    // ignore everything in this day
+                    continue;
+                }
+                //#endregion
+
+ 
                 //
                 // old erows
                 //
@@ -197,10 +273,15 @@ export const SaveJournalResolver = {
                 }
 
 
-                var usedBW      ;
+                //
+                // SAVE USER TAG's VALUES
+                // tag values for this day. Now every tag token will contain the ID of the token value in it.
+                //  
+                await addEditorUtags( tran.query, myId, day.did .filter( token=>token.tag ), logid ) ; 
+ 
 
                 //
-                // convertir day.did en texto... //!markedForDeletion && 
+                // LOG TOKEN ---> TEXT
                 //
                 const logText   = !markedForDeletion && day.did.reduce( (out, what)=>{
 
@@ -271,74 +352,38 @@ export const SaveJournalResolver = {
                         blockIndex++;
                     }
 
+                    //
+                    // un UTAG
+                    //
+                    else if( what.tag )
+                    {
+                        //we wont add the TAG to the log because that will "break" the mobile app i a way showing weird texts...
+
+                        out += utagTokenToText( what )+"\n";
+                        dayUTags.push( what );
+                    }
+
                     return out;
 
-                } ,"").trim(); 
+                } ,"").trim();  
+
+
+                //
+                //  Check if there's something relevant to save...
+                //
+                if( !logText.length && !bw )
+                { 
+                    //
+                    // Actually, @azothriel mentioned that she sometimes wants to save an empty workout to log the bodyweight...
+                    //
+                    throw new Error("The text content for day "+ymd+" is empty... did you forgot to type something? To delete a day you must type \"delete\" in the log text so the system knows your intention to delete.");
+                }
+
  
-
-                //#region CREATE or UPDATE log
                 //
-                // Updating existing LOG
+                // SAVE LOG TEXT
                 //
-                if( logid )
-                {
-                    //borrar old EROWS ( necesitamos saber los EIDs borrados para actualizar sus cache... )
-                    await tran.query(`DELETE FROM erows WHERE logid=?`,[ logid ]);
-
-
-                    //
-                    // el usuario marcó este día con el tag DELETE o NO HAY NADA EN EL LOG TEXT
-                    //
-                    if( markedForDeletion )
-                    {
-                        //
-                        // borrar log
-                        //
-                        await __deleteLog( tran, logid ); 
-                        continue;
-                    }
-
-                    //
-                    // no escribió nada...
-                    //
-                    else if( logText.length==0 )
-                    {
-                        throw new Error("Day "+ymd+" is empty... did you forgot to type something? To delete a day you must use the DELETE keyword, this is \"by design\" to make sure you fully understand what you are doing and no accidental deletions occur.");
-                    }
-
-                    //update text...
-                    await tran.query(`UPDATE logs SET bw=?, log=?, ultima_modificacion=NOW() WHERE id=?`, [ bw || 0, logText, logid ]);
-                }
-
-                //
-                // Brand NEW LOG!!
-                //
-                else 
-                {
-
-                    if( !logText.length )
-                    {
-                        throw new Error("The contents for day "+ymd+" is empty... did you forgot to type something?");
-                    }
-
-                    // insert new
-                    const newLog = await tran.query(`INSERT INTO logs SET ?`, {
-                        uid                 : myId,
-                        ultima_modificacion : new Date(),
-                        fecha_del_log       : ymd,
-                        bw: bw || 0,
-                        log: logText,
-                        fromMobile : 0
-                    });
-
-                    logid = newLog.insertId;
-
-                    if( !logid )
-                    {
-                        throw new Error("Weird... failed to create log "+ymd+" for some reason. Unexpected...")
-                    } 
-                }
-                //#endregion
+                await tran.query(`UPDATE logs SET log=? WHERE id=?`, [ logText, logid ]);  //<-- logText can be an empty string...
 
 
                 //
@@ -359,7 +404,7 @@ export const SaveJournalResolver = {
 
                     //agregar al array de erows to insert....
                     Array.prototype.push.apply( erowsToInsert, dayErows );
-                }
+                } 
             }
 
 
@@ -388,8 +433,35 @@ export const SaveJournalResolver = {
                 //     return out;
                 // } ,[]); 
             }  
-
             
+            //
+            // all done!
+            //
+            await tran.commit();   
+            
+        }
+
+        //
+        // on error abort transaction...
+        //
+        catch( e )
+        {  
+            await tran.abort( "Aborted because of ----> "+String(e) );
+        } 
+
+
+        //
+        // todo guardado! update users row...
+        // 
+        try 
+        { 
+            //
+            // UTAGS not referenced by any log
+            //
+            await deleteUnusedUTags( myId );
+
+
+            //#region >>> Recalculate Exercise Stats
             //
             // EIDs que fueron aftectados por este save, sea para agregarles o quitarles data...
             //
@@ -400,83 +472,59 @@ export const SaveJournalResolver = {
 
             } ,[]); 
             
-            
-            //
-            // all done!
-            //
-            await tran.commit(); 
-
-
             //
             // actualizar / delete cache of... estos EID...
             //
             if( eids2update.length>0 )
             {
-                var updateRes = await __recalculateExerciseStats( eids2update );  
-                //console.log("UPDATE RES = ", updateRes.affectedRows );
+                var updateRes = await __recalculateExerciseStats( eids2update );   
             } 
-            
-        }
-
-        //
-        // on error abort transaction...
-        //
-        catch( e )
-        { 
-            //console.log("ABORT!!");
-            console.error(e)
-            await tran.abort( "Aborted because of ----> "+String(e) );
-        } 
+            //#endregion
 
 
-        //
-        // todo guardado! update users row...
-        //
-        //if( todaysBW )
-        //{
-            try 
+            //#region >>> Update "users" table with latest data...
+            if( _modifiedLogs.length ) // si se modificaron_logs.....
             {
-                //actualizar lastlog y idDeLastLog....  
+                //
+                // buscar el mas "viejo" la fecha "mayor"
+                //
+                _modifiedLogs.sort( (a,b)=>b.when-a.when );
 
+                var lastLog         = _modifiedLogs.shift(); 
+                const lastLogId     = lastLog.id; 
 
+                // 
+                await query(`UPDATE users SET bw=?, idOfLastLog=?, last_log=? WHERE id=?`, [ todaysBW || userKnownBW, lastLogId, new Date(), myId ]); 
 
-                if( _modifiedLogs.length ) // si se modificaron_logs.....
+            }
+            else 
+            {
+                //
+                // if we enter here it means it was probably a DELETE operation only.
+                //
+                var lastLogPosted = await query(`SELECT * FROM logs WHERE uid=? ORDER BY fecha_del_log DESC, id DESC LIMIT 1`,[myId]);
+
+                if( lastLogPosted.length )
                 {
-                    //buscar el mas "viejo" la fecha "mayor"
-                    _modifiedLogs.sort( (a,b)=>b.when-a.when );
-
-                    var lastLog         = _modifiedLogs.shift(); 
-                    const lastLogId     = lastLog.id; 
-
-                    //
-                    
-                    await query(`UPDATE users SET bw=?, idOfLastLog=?, last_log=? WHERE id=?`, [ todaysBW || userKnownBW, lastLogId, new Date(), myId ]); 
-
+                    await query(`UPDATE users SET bw=?, idOfLastLog=?, last_log=? WHERE id=?`, 
+                            [ lastLogPosted[0].bw, lastLogPosted[0].id, lastLogPosted[0].ultima_modificacion, myId ]); 
                 }
                 else 
                 {
-                    //no hay nada... por ahi solo borró. Hay que buscar ahora el ultimo logged....
                     //
-                    var lastLogPosted = await query(`SELECT * FROM logs WHERE uid=? ORDER BY fecha_del_log DESC, id DESC LIMIT 1`,[myId]);
-
-                    if( lastLogPosted.length )
-                    {
-                        await query(`UPDATE users SET bw=?, idOfLastLog=?, last_log=? WHERE id=?`, 
-                                [ lastLogPosted[0].bw, lastLogPosted[0].id, lastLogPosted[0].ultima_modificacion, myId ]); 
-                    }
-                    else 
-                    {
-                        // o poner todo en cero... 
-                        await query(`UPDATE users SET bw=0, idOfLastLog=0, last_log=null WHERE id=?`, [ myId ]); 
-                    }
-                } 
-                 
-            }
-            catch(e)
-            {
-                //ignore...
-            }
-        //}
+                    // Evertyhing was deleted, no data available at all...
+                    //
+                    await query(`UPDATE users SET bw=0, idOfLastLog=0, last_log=null WHERE id=?`, [ myId ]); 
+                }
+            } 
+            //#endregion
+                
+        }
+        catch(e)
+        {
+            //ignore... this error is not relevant to the save operation.
+            console.log( e )
+        } 
 
 
         return true;

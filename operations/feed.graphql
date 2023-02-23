@@ -19,5 +19,17 @@
         posted
         media
         itemsLeftAfterThis
+        utags {
+            tags {
+                id
+                name
+            }
+            values {
+                id
+                tagid
+                type 
+                value
+            }
+        }
     }
   }
