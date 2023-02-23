@@ -53,6 +53,17 @@ query JDay($uid: ID!, $ymd: YMD) {
         int { w, r, lb, when, bw }
       }
     }
+    utags {
+      id 
+      name 
+    }
+    utagsValues {
+        id
+        tagid
+        type
+        value
+        logid
+    }
   }
 }
 
@@ -73,6 +84,10 @@ fragment jeditorDataFields on JEditorData {
         days 
         reps
     } 
+    utags {
+        id 
+        name
+    }
     etags
     baseBW
     did {
@@ -97,12 +112,19 @@ fragment jeditorDataFields on JEditorData {
       ... on JEditorDayTag {
         on
       }
+      ... on UTagValue {
+        tagid
+        type
+        value
+      }
     }
 }
 
 
 query GetJRange($uid: ID!, $ymd: YMD!, $range: Int!) {
   jrange(uid: $uid, ymd: $ymd, range: $range) {
+    from 
+    to
     exercises {
         id
         name
@@ -124,9 +146,22 @@ query GetJRange($uid: ID!, $ymd: YMD!, $range: Int!) {
                 est1rm
                 eff
                 int
-            }
+            } 
+        }  
+    }
+    utags {
+        tags {
+            id 
+            name  
+            automatic
+        } 
+        values {
+            tagid 
+            ymd 
+            type
+            value
         }
-        }
+    } 
   }
 }
 

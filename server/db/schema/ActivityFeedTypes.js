@@ -16,6 +16,7 @@ const $types = gql`
     workoutPreview:[EblockPreview]
     andXmore:Int
     itemsLeftAfterThis:Int
+    utags:UTagsUsed
   }
 
   enum ActivityFeedType {

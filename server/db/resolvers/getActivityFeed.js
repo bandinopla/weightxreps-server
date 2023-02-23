@@ -1,10 +1,11 @@
 import { query } from "../connection.js";
 import { dateASYMD } from "../../utils/dateASYMD.js";
 import replaceAndExtractMedia from "../../utils/replace-and-extract-media.js";
-import { ename2type }  from "../../utils/ename2type.js";
+import { ename2type } from "../../utils/ename2type.js";
 import extractUserDataFromRow from "../../utils/extractUserDataFromRow.js";
 import { AuthenticationError } from "apollo-server-express";
 import { getAvatarHash } from "../../utils/get-avatar-hash.js";
+import { addUtagsValuesToFeedUCards } from "./tags.js";
 
 
 const totalJournals = async ( parent, args, context ) => {
@@ -136,41 +137,70 @@ const getActivityFeed = async ( parent, args, context ) => {
      * Pero colecionar los EBLOCKS referenciados...
      * @param {String} txt 
      */
-    const parsePreviewText = ( txt, lid, eblocksIDs, onMediaFound ) => {
+    const parsePreviewText = ( txt, lid, eblocksIDs, onMediaFound, onUtagValueIdFound ) => {
 
-        txt = txt.replace(/EBLOCK:(\d+)/g, (m,eid)=>{
+        let MAX_CHARS = 80;
 
-                    if( !logid2preview[lid] ) {
-                        logid2preview[lid] = eblocksIDs;
-                    }
+        txt = txt.replace(/(UTAG|EBLOCK):(\d+)/g, (m,tokenType,id)=>{
+ 
+                    const tokenID = parseInt( id );
 
-                    logid2preview[lid].push( Number(eid) ) //no hace falta
-                    return "";
+                    switch( tokenType )
+                    {
+                        case 'EBLOCK': 
+                            if( !logid2preview[lid] ) 
+                                 logid2preview[lid] = eblocksIDs; 
+        
+                            logid2preview[lid].push( tokenID ) //no hace falta
+                            return "";
+
+                        case 'UTAG':
+                            onUtagValueIdFound( tokenID );
+
+                            return m; 
+                    } 
+                    
 
             }).replace(/\n+/g," | ").trim();
 
-            //
-            // extract media....
-            //
-            txt = replaceAndExtractMedia(txt, onMediaFound);
+        //
+        // extract media....
+        //
+        txt = replaceAndExtractMedia(txt, onMediaFound);
 
         let justLetters = txt.replace(/\s+|\|/g,"");
         if( justLetters.length == 0 )
-            return null;
+            return null;  
 
         if( txt.length>80 )
         {
-            return txt.substr(0,80)+"[...]";
-        }
+            //
+            //avoid cutting UTAGs
+            //
+            const regex = new RegExp('\\bUTAG:\\d+\\b');
+            const match = txt.substring(0, 80).match(regex);
+            
+            if ( match ) 
+            {
+                const newMax = match.index + match[0].length;
+
+                MAX_CHARS = Math.max( MAX_CHARS, newMax ); 
+            }  
+
+            txt = txt.substring(0, MAX_CHARS) + '...';
+        } 
+
         return txt;
     }
  
+    // row.id = uid  row.logid 
  
     let ucards = result.map( row=>{
  
         
                     let eblocksIDs = [];
                     let media; //URL a una imagen onda thumbnail representativa del primer link a un video found en log text...
+                    let utagValuesIDs = []; //<---- tags that the preview text of the log contains.
 
                     if( row.private )
                     {
@@ -195,9 +225,13 @@ const getActivityFeed = async ( parent, args, context ) => {
                         }
                         , posted    : row.ymd && dateASYMD( row.ymd, true )
                         , when      : row.last_log && row.last_log.toUTCString() //Date.UTC(2021, 6, 15, 17, 0, 0),
-                        , text      : row.log && parsePreviewText( row.log, row.logid, eblocksIDs, foundMedia=>media=foundMedia )
+                        , text      : row.log && parsePreviewText( row.log, row.logid, eblocksIDs, foundMedia=>media=foundMedia, tagid=>utagValuesIDs.push(tagid) )
                         , workoutPreview : eblocksIDs.length? eblocksIDs : null
                         , media
+                        , utags     : utagValuesIDs.length? {
+                            tags    : [],
+                            values  : utagValuesIDs
+                        } : null
 
     }}); 
 
@@ -269,6 +303,13 @@ const getActivityFeed = async ( parent, args, context ) => {
         });
 
     }
+
+
+    //
+    // add User tags data data...
+    //
+    await addUtagsValuesToFeedUCards( ucards );
+
 
     //
     // 
