@@ -50,7 +50,9 @@ export class DeleteAccountSetting extends BaseSetting {
             ["users_forgot","uid"],
             ["users_google","uid"],
             ["users_notifications_settings","uid"],
-            ["users_prs","uid"] 
+            ["users_prs","uid"],
+            ["tags","uid"],
+            ["tags_used","uid"]
         ];
 
         for (let i = 0; i < quickDeletes.length; i++) 
