@@ -276,7 +276,6 @@ export async function addUtagsValuesToFeedUCards( ucards )
                            INNER JOIN tags AS B ON B.id=A.tagid 
                            WHERE A.id IN (?)`, [ tvalIds ]);
 
-                           console.log( tvalIds, res )
 
     res.forEach( row => {
 
@@ -299,8 +298,7 @@ export async function addUtagsValuesToFeedUCards( ucards )
 
             if(!tagRow)
             {
-                console.log( tid, res )
-                process.exit();
+                return null;
             }
             
             return {
@@ -310,11 +308,7 @@ export async function addUtagsValuesToFeedUCards( ucards )
                 value: tagRow.value
             }
         } )
- 
-
-        //
-        // TODO: check if a tag wasn't found???
-        //
+        .filter( tval=>tval!==null)
 
     });
 }
