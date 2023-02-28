@@ -383,7 +383,7 @@ export const SaveJournalResolver = {
                 //
                 // SAVE LOG TEXT
                 //
-                await tran.query(`UPDATE logs SET log=? WHERE id=?`, [ logText, logid ]);  //<-- logText can be an empty string...
+                await tran.query(`UPDATE logs SET log=?, bw=? WHERE id=?`, [ logText, bw, logid ]);  //<-- logText can be an empty string...
 
 
                 //
