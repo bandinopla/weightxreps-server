@@ -82,7 +82,7 @@ export function utagTokenToText( utagToken )
 
 export function getUTagId( name, availableUTags )
 {
-    return availableUTags.find( utag=>utag.name.toLowerCase()==name )?.id ;
+    return availableUTags.find( utag=>utag.name.trim().toLowerCase()==name.trim().toLowerCase() )?.id ;
 }
 
 //
