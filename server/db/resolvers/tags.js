@@ -103,7 +103,7 @@ export async function createNewTagsIfAny( query, uid, editorUtags, existingUTags
         for (let i = 0; i < newUTags.length; i++) 
         {
             const utag       = newUTags[i];
-            const duplicated = newUTags.find( ut=>ut.tag==utag.tag && ut.tagid>0 ) ;
+            const duplicated = newUTags.find( ut=>ut.tag.trim().toLowerCase()==utag.tag.trim().toLowerCase() && ut.tagid>0 ) ;
             
             if( duplicated )
             {
