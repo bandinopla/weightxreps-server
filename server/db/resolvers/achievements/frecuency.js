@@ -11,7 +11,7 @@ class Frecuency extends Achievement {
     constructor(x, daysSpan, maxDaysOff, minWorkouts, maxWorkouts, idName='MISSION'){ 
         
         super(`${x}-${idName}`, 
-                minWorkouts==maxWorkouts?`Pure Insanity` :`On a mission! High frecuency!`, 
+                minWorkouts==maxWorkouts?`Pure Insanity` :`On a mission! High frequency!`, 
                 (minWorkouts==maxWorkouts? `Trains this exercise ${minWorkouts} days in the last ${daysSpan} days` : `Trained this exercise between ${minWorkouts} and ${maxWorkouts} days in the last ${daysSpan} days`) + ` with no more than ${maxDaysOff} days off in between workouts.`
                 );
 
