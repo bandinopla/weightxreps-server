@@ -77,7 +77,10 @@ async function startApolloServer( ) {
 
   server.applyMiddleware({
      app, 
-     path: baseUrl + '/graphql'
+     path: baseUrl + '/graphql',
+     bodyParserConfig: {
+        limit: "2mb"
+     }
   }); 
 
 
