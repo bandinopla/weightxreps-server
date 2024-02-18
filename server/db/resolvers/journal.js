@@ -304,6 +304,42 @@ export const JournalResolver = {
             return rtrn;
         },
 
+        getYearOverview: async( parent, args, context) => {
+
+            const d0 = new Date( args.year, 0, 1 );
+            const dF = new Date( args.year+1, 0, 0); 
+    
+            d0.setDate( d0.getDate() - d0.getDay() );  
+            dF.setDate( dF.getDate() + (6 - dF.getDay()) ); 
+
+            const diffMs = dF - d0;
+            const differenceInDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const weeks = Math.ceil( differenceInDays/7 ) ; 
+
+            let days = await query(`SELECT logs.fecha_del_log, SUM( erows.wkg*erows.reps*erows.sets ) AS volume
+                                        FROM logs 
+                                        LEFT JOIN erows ON erows.logid=logs.id
+                                        WHERE logs.uid=? AND logs.fecha_del_log BETWEEN ? AND ?
+                                        GROUP BY logs.id 
+                                        ORDER BY logs.fecha_del_log ASC`, [ args.uid, dateASYMD(d0, true), dateASYMD(dF, true) ]);
+
+            let maxVolume = days.reduce( (old, v)=>Math.max(old,v.volume) ,0);
+            let minVolume = days.reduce( (old, v)=>Math.min(old,v.volume) ,Number.MAX_VALUE); 
+ 
+
+            return new Array( weeks*7 ).fill(0).map( (_,i)=>{
+
+                const day = new Date(d0);
+                day.setDate( day.getDate() + i);
+
+                const dayVolume = days.find( d=>d.fecha_del_log.getUTCFullYear()==day.getFullYear() &&  d.fecha_del_log.getUTCMonth()==day.getMonth() &&  d.fecha_del_log.getUTCDate()==day.getDate()) ;
+  
+                return dayVolume? 1 + Math.round((dayVolume.volume/maxVolume)*3)  : 0;
+
+            });
+
+        },
+
         jday: async (parent, args, context)=>{
 
             const ymd = args.ymd;

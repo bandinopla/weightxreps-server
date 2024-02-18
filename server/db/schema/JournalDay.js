@@ -143,6 +143,7 @@ const $types = gql`
     jeditor(ymd:YMD, range:Int):JEditorData @auth @UserMustAllow 
     downloadLogs:JEditorData @auth @UserMustAllow
     alsoposted(ymd:YMD):[User]
+    getYearOverview( uid:ID!, year:Int! ):[Int] @UserMustAllow 
   }
 
   extend type Mutation {

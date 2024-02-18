@@ -19,6 +19,10 @@ query GetCalendarDays($uid: ID!, $from: YYYYMMDD!, $to: YYYYMMDD!) {
   getCalendarDays(uid: $uid, from: $from, to: $to)
 }
 
+query GetYearOverview ($uid: ID!, $year: Int! ) {
+  getYearOverview(uid: $uid, year: $year )
+}
+
 
 query JDay($uid: ID!, $ymd: YMD) {
   jday(uid: $uid, ymd: $ymd) {
