@@ -340,6 +340,11 @@ export const JournalResolver = {
 
         },
 
+        getYearsLogged: async( parent, args, context) => {
+            const years = await query(`SELECT YEAR(logs.fecha_del_log) as year FROM logs WHERE logs.uid=? GROUP BY year ORDER BY year ASC`, [args.uid]);
+            return years.map(row=>row.year);
+        },
+
         jday: async (parent, args, context)=>{
 
             const ymd = args.ymd;

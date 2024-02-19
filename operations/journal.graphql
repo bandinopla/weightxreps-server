@@ -21,6 +21,7 @@ query GetCalendarDays($uid: ID!, $from: YYYYMMDD!, $to: YYYYMMDD!) {
 
 query GetYearOverview ($uid: ID!, $year: Int! ) {
   getYearOverview(uid: $uid, year: $year )
+  getYearsLogged(uid:$uid)
 }
 
 

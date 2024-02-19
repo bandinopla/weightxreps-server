@@ -144,6 +144,7 @@ const $types = gql`
     downloadLogs:JEditorData @auth @UserMustAllow
     alsoposted(ymd:YMD):[User]
     getYearOverview( uid:ID!, year:Int! ):[Int] @UserMustAllow 
+    getYearsLogged( uid:ID! ):[Int] @UserMustAllow
   }
 
   extend type Mutation {
