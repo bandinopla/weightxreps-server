@@ -13,6 +13,7 @@ export default function extractUserDataFromRow( row ) {
         , cc: row.country_code
         , slvl: row.supporterLevel
         , sok: Number(row.days_left_as_supporter>0)
+        , sleft: row.days_left_as_supporter
         , age: row.bday? Math.floor( (today.valueOf()-row.bday.valueOf()) / 31557600000 ) : null
         , bw : row.bw
         , private: row.private

@@ -29,8 +29,26 @@ export const VideosResolver = {
                 //                             ORDER BY B.idOfLastLog DESC LIMIT 50
                 //                             `); //AND days > 0
 
-                const results = await query(`select A.ultima_modificacion, A.fecha_del_log, A.log, A.id AS logid, B.* from logs AS A INNER JOIN users AS B ON B.id=A.uid AND B.deleted=0 where A.log LIKE '%youtube.com%' OR A.log LIKE '%youtu.be%' OR A.log LIKE '%instagram.com%' GROUP BY uname order by id DESC  LIMIT 50`)
+                //const results = await query(`select A.ultima_modificacion, A.fecha_del_log, A.log, A.id AS logid, B.* from logs AS A INNER JOIN users AS B ON B.id=A.uid AND B.deleted=0 where A.log LIKE '%youtube.com%' OR A.log LIKE '%youtu.be%' OR A.log LIKE '%instagram.com%' GROUP BY uname order by id DESC  LIMIT 50`)
              
+                const results = await query(`
+                                SELECT users.*, logs.id as logid, logs.log, logs.ultima_modificacion, logs.fecha_del_log
+                                    FROM logs
+
+                                    JOIN (
+                                        SELECT id, MAX(fecha_del_log) AS recent_date
+                                        FROM logs
+                                        WHERE log LIKE '%youtube.com%' OR log LIKE '%youtu.be%' OR log LIKE '%instagram.com%'
+                                        GROUP BY uid
+                                    ) AS recent ON logs.id = recent.id AND logs.fecha_del_log = recent.recent_date
+
+                                    JOIN users ON users.id = logs.uid
+
+                                    ORDER BY ultima_modificacion DESC
+
+                                    LIMIT 50
+                                    `);
+
                 return results.map( row=>{
                     
                     //youtube

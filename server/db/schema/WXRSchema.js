@@ -40,6 +40,7 @@ const baseTypeDefs = gql`
     cc:String
     slvl:Float
     sok:Int
+    sleft:Int
     age:Int
     bw:Float
     private:Int

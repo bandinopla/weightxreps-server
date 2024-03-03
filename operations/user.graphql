@@ -5,6 +5,7 @@ fragment UserFields on User {
             cc
             slvl
             sok
+            sleft
             age
             bw
             private
