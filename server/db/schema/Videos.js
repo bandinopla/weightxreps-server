@@ -11,7 +11,7 @@ const $types = gql`
   } 
 
   extend type Query {  
-    getVideos:[Video] 
+    getVideos(olderThan:UTCDate, limit:Int):[Video] 
   }
 `;
 

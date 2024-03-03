@@ -1,5 +1,5 @@
-query GetVideos { 
-  getVideos {
+query GetVideos($olderThan:UTCDate, $limit: Int) { 
+  getVideos(olderThan:$olderThan, limit:$limit) {
         user {
             ...BriefUserFields
         } 
