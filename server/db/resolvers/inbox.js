@@ -865,7 +865,7 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, partialMessages=fa
                             when            : row.fecha,
                             by              : userRef( by ),
                             to              : userRef( to ),
-                            text            : partialMessages? shortText(row.message) : unescape( row.message ),
+                            text            : row.subject+"\n"+ ( partialMessages? shortText(row.message) : unescape( row.message ) ),
                             msgid           : row.id,
                             inResponseToMsg : null,
                             inResponseTo    : null,  
