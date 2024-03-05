@@ -1,5 +1,5 @@
 import { query } from "../connection.js";
-
+import extractUserDataFromRow from "../../utils/extractUserDataFromRow.js";
 
 
 const __like = async ( likeType, _, args, context ) => {
@@ -61,6 +61,26 @@ export const LikesAndFollowsResolver = {
                 has
             } ;
 
+        },
+
+        getFollowing: async( parent, args, context) => {
+            const result = await query(`SELECT users.* 
+                                    FROM follow 
+                                    LEFT JOIN users ON users.id=follow.followingid
+                                    WHERE follow.followerid=? AND users.deleted=0 
+                                    ORDER BY follow.id DESC`, [ args.uid ]);
+                                    
+                  return result.map( row=>extractUserDataFromRow(row) );
+        },
+
+        getFollowers: async( parent, args, context) => {
+            const result = await query(`SELECT users.* 
+                                    FROM follow 
+                                    LEFT JOIN users ON users.id=follow.followerid
+                                    WHERE follow.followingid=? AND users.deleted=0
+                                    ORDER BY follow.id DESC`, [ args.uid ]);
+                                    
+                                    return result.map( row=>extractUserDataFromRow(row) );
         }
     },
     Mutation: {

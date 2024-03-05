@@ -11,6 +11,8 @@ const $types = gql`
 
     extend type Query {
         getFollowersCount(uid:ID!, has:ID):FollowersCount! @UserMustAllow
+        getFollowing(uid:ID!):[User] @UserMustAllow
+        getFollowers(uid:ID!):[User] @UserMustAllow
     }
 
     extend type  Mutation {

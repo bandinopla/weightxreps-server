@@ -6,6 +6,27 @@ query GetFollowers($of: ID!, $has:ID ) {
   }
 }
 
+query GetUsersFollowing( $who:ID! ) {
+    getFollowers( uid:$who ) {
+        ...BriefUserFields
+    }
+}
+
+query GetUsersFollowedBy( $who:ID! ) {
+    getFollowing( uid:$who ) {
+        ...BriefUserFields
+    }
+}
+
+query GetFollowInfo( $uid:ID! )
+{
+    getFollowers( uid:$uid ) {
+        ...BriefUserFields
+    }
+    getFollowing( uid:$uid ) {
+        ...BriefUserFields
+    }
+}
 
 mutation LikeMessage($target:ID!) {
     likeMessage( target:$target )
