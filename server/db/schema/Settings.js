@@ -97,6 +97,7 @@ const $types = gql`
   }
   extend type Mutation { 
     uploadAvatar(file: Upload!): String! @auth #--- deveulve el HASH
+    deleteAvatar: Boolean @auth
     setSetting( id:ID!, value:SettingValue ):UserSetting @auth @UserMustAllow
     sendVerificationCode( id:ID!, code:String! ):UserSetting @auth @UserMustAllow 
     

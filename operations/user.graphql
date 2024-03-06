@@ -32,3 +32,11 @@ fragment BriefUserFields on User {
     sok 
     slvl
 }
+
+mutation UploadAvatar ($file: Upload!) {
+    uploadAvatar(file: $file) 
+}
+
+mutation DeleteAvatar {
+    deleteAvatar 
+}

@@ -89,6 +89,23 @@ export const SettingsResolver = {
             return new Date().getTime().toString(); //<<---- hash para que haga update...
         },
 
+        deleteAvatar: async (parent, args, context) => {
+            const myid  = context.session.id;
+            const url   = $config.avatarUploadUrl +"u_"+myid+'.jpg';
+ 
+
+            //check if file exists 
+            if (fs.existsSync(url)){
+                fs.unlinkSync(url);
+            }
+            else 
+            {
+                throw new Error("The avatar your are trying to delete does not exist...");
+            }
+
+            return true;
+        },
+
         setSetting: async (parent, args, context) => {
 
             const user          = context.userInfo; 
