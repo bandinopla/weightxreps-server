@@ -334,7 +334,7 @@ export const JournalResolver = {
 
                 const dayVolume = days.find( d=>d.fecha_del_log.getUTCFullYear()==day.getFullYear() &&  d.fecha_del_log.getUTCMonth()==day.getMonth() &&  d.fecha_del_log.getUTCDate()==day.getDate()) ;
   
-                return dayVolume? 1 + Math.round((dayVolume.volume/maxVolume)*3)  : 0;
+                return dayVolume? 1 + ( dayVolume.volume? Math.round((dayVolume.volume/maxVolume)*3) : 0 )  : 0;
 
             });
 
