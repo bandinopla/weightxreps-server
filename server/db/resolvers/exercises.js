@@ -359,7 +359,7 @@ export const __recalculateExerciseStats = async (eid, transaction) => {
     //
     // borrar la cache de PRs de esos exercises
     //
-    eids.forEach( _eid =>deleteCachedIfKeyMatches(new RegExp("\.of:"+_eid+"$")) );
+    eids[0].forEach( _eid =>deleteCachedIfKeyMatches(new RegExp("\.of:"+_eid+"$")) );
 
 
 
