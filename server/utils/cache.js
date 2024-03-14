@@ -3,7 +3,7 @@ import LRUCache from "lru-cache";
 
 
 const $cache = new LRUCache({  
-        maxAge: 1000 * 60 * 60 
+        maxAge: process.env.NODE_ENV=='production'? 1000 * 60 * 60 : 0
 });
 
 

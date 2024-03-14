@@ -33,9 +33,25 @@ const $types = gql`
     est1rm:Float #va a ser CERO si reps=0 o 10+
   }
 
+  type UnitValueWhen {
+    val:Float!
+    when:YMD!
+    unit:String!
+  }
+
+  type BestWxDorT { 
+    maxDistance:UnitValueWhen 
+    minDistance:UnitValueWhen
+    topSpeed:UnitValueWhen
+    maxTime:UnitValueWhen
+    minTime:UnitValueWhen 
+    maxForce:UnitValueWhen
+  }
+
   type EBestStats {
     eff:BestEStat #best EFF
-    int:BestEStat! #best INT
+    int:BestEStat #best INT
+    prsWxDorT:BestWxDorT
   }
 
   type ERef {
@@ -57,18 +73,35 @@ const $types = gql`
  
 
  type Set { 
-   w:Float!
-   r:Float!
-   s:Float!
-   lb:Int!
+   w:Float
+   r:Float
+   s:Float
+   lb:Int
    ubw:Int      # used BW. En ese caso, al "w" hay que restarle el valor del BW. Ya que lo tendrá incluido.
    c:String     # comentarios del set....
    rpe:Float    # el RPE del set
-   pr:Int       # 0|1 si es PR o no
-   est1rm:Float!
-   eff:Float!
-   int:Float!
- }
+   pr:Int       # 0|1 si es PR o no 
+   
+
+   #
+   # stats w x r
+   #
+   est1rm:Float
+   eff:Float
+   int:Float
+
+   #
+   # stats weight x time or distance
+   # 
+   t:Int        #milliseconds
+   d:Int        #distance in centimeters * 100
+   dunit:String # unit of the distance
+   type:Int     # 0 WxR set y >1 WxDoT set
+
+   speed:Float # in meters per second.... 
+   force:Float # in Newtons
+   
+ } 
 
  type JRangeDayData {
     on:YMD
@@ -99,6 +132,14 @@ const $types = gql`
      s:Int 
      c:String
      rpe:Float
+
+    #
+    # stats weight x time or distance
+    # 
+    t:Int        #milliseconds
+    d:Int        #distance in centimeters * 100
+    dunit:String # unit of the distance
+    type:Int     # 0 WxR set y >1 WxDoT set
  }
 
  type JEditorEBlock {

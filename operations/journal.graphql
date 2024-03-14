@@ -1,3 +1,28 @@
+fragment WxDoTFields on Set {
+        type  
+        t 
+        d
+        dunit 
+}
+fragment WxDoTFieldsExtras on Set { 
+        speed
+        force
+}
+
+fragment SetFields on Set {
+        w
+        r
+        s
+        lb 
+        ubw 
+        c 
+        rpe  
+        pr  
+        est1rm
+        eff
+        int
+}
+
 query GetUserInfo($userInfoUname: String!) {
   userInfo(uname: $userInfoUname) {
     user {
@@ -33,18 +58,10 @@ query JDay($uid: ID!, $ymd: YMD) {
     bw
     eblocks {
       eid
-      sets {
-        w
-        r
-        s
-        lb 
-        ubw 
-        c 
-        rpe  
-        pr  
-        est1rm
-        eff
-        int
+      sets { 
+        ...SetFields
+        ...WxDoTFields
+        ...WxDoTFieldsExtras
       }
     }
     exercises {
@@ -56,6 +73,14 @@ query JDay($uid: ID!, $ymd: YMD) {
       best {
         eff { w, r, lb, when, bw, est1rm }
         int { w, r, lb, when, bw }
+        prsWxDorT {
+            maxDistance { val, unit, when } 
+            minDistance { val, unit, when } 
+            topSpeed { val, unit, when } 
+            minTime { val, unit, when }
+            maxTime { val, unit, when }
+            maxForce { val, unit, when } 
+        }
       }
     }
     utags {
@@ -111,7 +136,12 @@ fragment jeditorDataFields on JEditorData {
           s
           r
           lb
-          rpe
+          rpe  
+
+          t
+          d
+          dunit 
+          type
         }
       }
       ... on JEditorDayTag {
@@ -151,6 +181,8 @@ query GetJRange($uid: ID!, $ymd: YMD!, $range: Int!) {
                 est1rm
                 eff
                 int
+                ...WxDoTFields
+                ...WxDoTFieldsExtras
             } 
         }  
     }

@@ -3,6 +3,7 @@ import { deleteCachedIfKeyMatches, getCached } from "../../utils/cache.js";
 import { ename2type } from "../../utils/ename2type.js";
 import { query, transaction } from "../connection.js";
 import { rpePercentLeftJoin } from "./rpe.js";
+import { PRsOfWxDorT } from "./weight_x_distance_or_time.js";
 
 
 
@@ -30,8 +31,11 @@ export const ExercisesResolver = {
             const eid       = args.eid;
             const uid       = context.userInfo.id; //context.session.id;
             const till      = args.till; 
+            const result       = await getPRsOf(uid, eid, till);
 
-            return await getPRsOf(uid, eid, till);
+            result.prsWxDorT?.addPRsForPRHistory( result );
+
+            return result;
         }
     },
     
@@ -355,7 +359,7 @@ export const __recalculateExerciseStats = async (eid, transaction) => {
     //
     // borrar la cache de PRs de esos exercises
     //
-    eids.forEach( _eid =>deleteCachedIfKeyMatches(new RegExp("\.of:"+_eid+"$")) );
+    eids[0].forEach( _eid =>deleteCachedIfKeyMatches(new RegExp("\.of:"+_eid+"$")) );
 
 
 
@@ -441,13 +445,21 @@ export const getPRsOf = async ( uid, eid, till )=>{
         // ${ till? "AND B.fecha_del_log<?":""} 
         // todos los erows ordenados por fecha del log, block, id
         const queryResult = await query(` SELECT 
+                                                A.id,
                                                 A.wkg, 
                                                 A.inlbs,
                                                 A.reps, 
                                                 A.sets,
                                                 A.rpe,
                                                 B.fecha_del_log AS ymd,
+                                                A.usedBW,
+                                                A.added2BW,
                                                 B.bw,
+
+                                                A.distance,
+                                                A.distance_unit,
+                                                A.duration,
+                                                A.type,
 
                                                 #
                                                 # estimated 1RM usando la formula del usuario
@@ -480,6 +492,7 @@ export const getPRsOf = async ( uid, eid, till )=>{
         const prs               = [];
         var totalWorkouts       = 0;
         var lastDay             = 0;
+        const prsWxDorT         = new PRsOfWxDorT();
 
         //
         // acá queremos saber cuantas reps hizo por cada rep range.
@@ -497,6 +510,12 @@ export const getPRsOf = async ( uid, eid, till )=>{
             {
                 totalWorkouts++;
                 lastDay = erow.ymd.valueOf();
+            }
+
+            if( erow.type>0 )
+            {
+                prsWxDorT.accumulate( erow );
+                return;
             }
     
             if( reps<=0 ) return;
@@ -534,7 +553,8 @@ export const getPRsOf = async ( uid, eid, till )=>{
                     lb: erow.inlbs,
                     when: erow.ymd, //dateASYMD(erow.ymd, true),
                     bw: erow.bw,
-                    est1rm: erow.est1rm
+                    est1rm: erow.est1rm,
+                    a2bw: erow.added2BW // if >0 it means that "w" = BW + a2b
                 });
             }
 
@@ -592,7 +612,8 @@ export const getPRsOf = async ( uid, eid, till )=>{
                     lb: erow.inlbs,
                     when: erow.ymd, //dateASYMD(erow.ymd, true),
                     bw: erow.bw,
-                    est1rm: erow.est1rm
+                    est1rm: erow.est1rm,
+                    a2bw: erow.added2BW
                 })
             }
     
@@ -617,7 +638,8 @@ export const getPRsOf = async ( uid, eid, till )=>{
                     prs, 
                     totalWorkouts,
                     setsOf: repsStats.sort( (a,b)=>a.r-b.r ),
-                    effPRs
+                    effPRs,
+                    prsWxDorT
                 };  
     
     }); //end getCached(id)
@@ -629,7 +651,8 @@ export const getPRsOf = async ( uid, eid, till )=>{
             prs: [],
             totalWorkouts: 0,
             setsOf: [],
-            effPRs: []
+            effPRs: [],
+            prsWxDorT: null
         }
     }
 
@@ -641,14 +664,15 @@ export const getPRsOf = async ( uid, eid, till )=>{
     { 
         result = {
             ...result,
-            prs         : result.prs.filter( pr=>pr.when.valueOf()<till.valueOf() ), 
-            effPRs      : result.effPRs.filter( pr=>pr.when.valueOf()<till.valueOf() ), 
+            prs         : result.prs?.filter( pr=>pr.when.valueOf()<till.valueOf() ), 
+            effPRs      : result.effPRs?.filter( pr=>pr.when.valueOf()<till.valueOf() ), 
+            prsWxDorT   : result.prsWxDorT?.onlyOlderThan(till)
         }
 
-        if( !result.prs.length )
-        {
-            return null;
-        }
+        // if( !result.prs.length )
+        // {
+        //     return null;
+        // }
     }
  
 

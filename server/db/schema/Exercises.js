@@ -29,9 +29,35 @@ const $types = gql`
         exercise:Exercise!
         totalWorkouts:Int! 
         setsOf:[RepStat]
-        prs:[PR]  
-        
+        prs:[PR]
+        wxdotPRS:WxDOTPRs
     }
+
+    type WxDOTPRs {
+        erows: [Set]
+        ymds: [YMD]
+        erowi2ymdi:[Int] 
+ 
+        minDistancePR:[Int]
+        maxDistancePR:[Int]
+        maxTimePR:[Int]
+        minTimePR:[Int]
+        speedPR:[Int]
+        maxForcePR:[Int]
+        WxD_PRs:[Int]
+        WxT_PRs:[Int]
+        DxTPR:[Int]
+    }
+
+    type WxDPR { 
+        w:Float
+        lb:Int
+        a2bw:Float 
+        d:Float!
+        dunit:String!
+        t:Float
+        when:YMD!
+    } 
 
     type RepStat {
         r:Int!
@@ -44,6 +70,7 @@ const $types = gql`
         lb:Int!
         when:YMD!
         bw:Float
+        a2bw:Float
     }
 
     extend type Query {  

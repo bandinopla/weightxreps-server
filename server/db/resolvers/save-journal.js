@@ -5,7 +5,8 @@ import { query, transaction } from "../connection.js";
 import { __recalculateExerciseStats } from "./exercises.js"; 
 import { addEditorUtags, createNewTagsIfAny, deleteUnusedUTags, deleteUTagsFromLog, getUTagId, getUTags, preventDuplicatedUTagsOnSave, utagTokenToText } from "./tags.js";
 
-
+//https://stackoverflow.com/a/63464318/18693152 
+const removeWeirdChars = str=>str.replace(/[^\p{L}\p{N}\p{P}\p{Z}{\^\$\n}]/gu, '');
 
 export const SaveJournalResolver = {
 
@@ -383,7 +384,7 @@ export const SaveJournalResolver = {
                 //
                 // SAVE LOG TEXT
                 //
-                await tran.query(`UPDATE logs SET log=?, bw=? WHERE id=?`, [ logText, bw, logid ]);  //<-- logText can be an empty string...
+                await tran.query(`UPDATE logs SET log=?, bw=? WHERE id=?`, [ removeWeirdChars(logText), bw, logid ]);  //<-- logText can be an empty string...
 
 
                 //
@@ -563,29 +564,29 @@ const __createNewExercises = async (tran, newExercises, uid)=>{
 /**
  * @param {number} bw  El bodyweight en KILOGRAMS
  * @param {Array} out 
- * @param { { w:{v,lb,usebw:1|-1 }, i:number, r:number, s:number, c:number, rpe }} set 
+ * @param { { w:{v,lb,usebw:1|-1 }, i:number, r:number, s:number, c:number, rpe, t:number, d:{val:number, unit:string}, type:number }} set 
  */
 const __pushInputSetToErowToInsert = (out, set, bw, usekg, erowBase ) => {
 
     // set.i==0 & set.rpes
 
-    if( set.w.usebw && !bw )
+    if( set.w?.usebw && !bw )
     {
         throw new Error(`JEDITOR:${set.line} You must specify your bodyweight for the day if you are going to use the "BW" keyword in a set.`);
     }
  
-    var v       = set.w.v; //0.4535924
+    var v       = set.w?.v || 0; //0.4535924
     var inlbs   = false;
     //
     // si el set no especifica UNIT pero el usuario no usa KG, lo escribió en LBS
     //
-    if( set.w.lb || (set.w.lb==null && !usekg) )
+    if( set.w?.lb || (set.w?.lb==null && !usekg) )
     {
         v       = lb2kg(v); //<----- convertir el peso en KILOS
         inlbs   = true;
     }
 
-    const usebw = set.w.usebw; //<-- 1 o -1 sino es CERO. Negative significa que se quitó peso. Ej: elastic bands pullups.
+    const usebw = set.w?.usebw; //<-- 1 o -1 sino es CERO. Negative significa que se quitó peso. Ej: elastic bands pullups.
 
     //
     // puede ser un array si se tipeó en el editor como : @8, 8.5, 10  ...ponele ( RPEs separados pro coma )
@@ -600,8 +601,12 @@ const __pushInputSetToErowToInsert = (out, set, bw, usekg, erowBase ) => {
         inlbs       : Number(inlbs),
         reps        : set.r, 
         sets        : set.s,
-        comment     : set.c.trim(),
-        rpe         : rpes? rpes[ set.i || 0 ] : 0 //<--- el RPE que corresponda...
+        comment     : set.c? removeWeirdChars( set.c.trim() ) : "",
+        rpe         : rpes? rpes[ set.i || 0 ] : 0, //<--- el RPE que corresponda...
+        type        : set.type,
+        duration    : set.t ?? 0, // in milliseconds
+        distance    : set.d?.val ?? 0, // in cm * 100
+        distance_unit: set.d?.unit ?? null
     }
 
     //
