@@ -29,6 +29,26 @@ query GetPRsOf($eid: ID!, $till:YMD) {
       lb
       when
       bw
+      a2bw
+    }
+    wxdotPRS {
+        erows {
+            ...SetFields
+            ...WxDoTFields
+            ...WxDoTFieldsExtras
+        } 
+        ymds 
+        erowi2ymdi 
+
+        minDistancePR
+        maxDistancePR
+        maxTimePR
+        minTimePR
+        speedPR
+        maxForcePR
+        WxD_PRs
+        WxT_PRs
+        DxTPR
     }
   }
 }

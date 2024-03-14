@@ -12,6 +12,7 @@ import { rpePercentLeftJoin } from "./rpe.js";
 import { decode } from 'html-entities';
 import { ExercisesResolver } from "./exercises.js";
 import { getUTags, getUTagsRangeData } from "./tags.js";
+import { WxDoT_DistanceOf, WxDoT_ForceOf, WxDoT_SpeedOf, WxDoT_GQLErowFields } from "./weight_x_distance_or_time.js";
 
 /**
  * Devuelve la info del usuario si no estamos ni bloqueados ni el usuario que se pide es privado.
@@ -118,7 +119,7 @@ const GetBestOfficialLiftsOf = async ( uid, onlyTheseTypes )=>{
                                 INNER JOIN exercises AS B ON B.id=A.eid  
                                 WHERE 
                                     A.uid=? 
-                                    AND A.reps>0
+                                    AND A.reps>0 AND A.type=0
                                     AND (B.nombre IN (?) OR ${ officialETags.map( tag=>`B.nombre LIKE '%${tag}' OR B.nombre LIKE '%${tag} %'` ).join(" OR ") })
                                     
                                 GROUP BY B.id 
@@ -357,7 +358,7 @@ export const JournalResolver = {
             //
             var log = await query(`SELECT * FROM logs WHERE uid=? AND fecha_del_log=? LIMIT 1`, [ uid, ymd ]);
 
-            if( !log.length) 
+            if( !log.length || log[0].log=="" ) //should never happen but... just in case...
                      return; 
 
             //
@@ -433,7 +434,6 @@ export const JournalResolver = {
                     // obtener PRs de este ejercicio para fechas menores al YMD
                     //
                     var PRsOfEID = await getPRsOf( uid, _eid, log.fecha_del_log );
-
                     prs.set( _eid, PRsOfEID );  
 
                 }
@@ -452,6 +452,8 @@ export const JournalResolver = {
 
                     e.best.eff      = eff; // <-- puede ser null...
                     e.best.int      = int;  
+
+                    e.best.prsWxDorT = PRsOfEID.prsWxDorT.getBestStats(); 
                 }
 
                 //
@@ -465,7 +467,7 @@ export const JournalResolver = {
                 // si no hay info historica de INT, calcularla con la info del día.
                 //
                 if(!e.best.int) {
-                    e.best = null; //si no hay INT, no hay nada.
+                    //e.best = null; //si no hay INT, no hay nada.
                     e._calculateDayIntAsBest = true;
                 }
             } 
@@ -532,8 +534,7 @@ export const JournalResolver = {
                     //
                     // hay que calcular el best EFF del día? (caso que no tenga eff histórico)
                     //
-                    console.log( eref )
-                    if( eref._calculateDayEffAsBest )
+                    if( eref._calculateDayEffAsBest && set.type==0 )
                     {
                         // este sería el "best eff" del día si este erow fuera el "mejor"
                         let setEff = {
@@ -553,7 +554,7 @@ export const JournalResolver = {
                             //
                             // crear "best" si no existe...
                             //
-                            if( !eref.best ) eref.best = { eff:null, int:null };
+                            //if( !eref.best ) eref.best = { eff:null, int:null };
 
                             //
                             // setear este como mejor eff
@@ -565,7 +566,7 @@ export const JournalResolver = {
                     //
                     // hay que calcular el best INT del día? (caso que no tenga int histórico)
                     //
-                    if( eref._calculateDayIntAsBest )
+                    if( eref._calculateDayIntAsBest && set.type==0 )
                     {
                         // este sería el "best eff" del día si este erow fuera el "mejor"
                         let setInt = {
@@ -584,7 +585,7 @@ export const JournalResolver = {
                             //
                             // crear "best" si no existe...
                             //
-                            if( !eref.best ) eref.best = { eff:null, int:null };
+                            // if( !eref.best ) eref.best = { eff:null, int:null };
 
                             //
                             // setear este como mejor eff
@@ -603,8 +604,17 @@ export const JournalResolver = {
                         rpe : set.rpe, //<- puede ser 0 
                         pr  : set.isPR? 1 : 0,
                         est1rm: set.est1rm,
-                        // eff 
-                        // int
+
+
+                        
+                        // type: set.type,
+                        // t : set.duration, // in milliseconds
+                        // d : set.distance, // in cm*100
+                        // dunit : set.distance_unit, 
+
+                        // speed   : WxDoT_SpeedOf(set), // meters per second or 0 
+                        // force   : WxDoT_ForceOf(set), // Newtons 
+                        ...WxDoT_GQLErowFields(set)
                     }); 
                 }; 
 
@@ -682,6 +692,11 @@ export const JournalResolver = {
                                                 fecha_del_log,
                                                 inlbs,
                                                 usedBW,
+
+                                                type,
+                                                distance, 
+                                                distance_unit,
+                                                duration,
 
                                                 #
                                                 # estimated 1RM usando la formula del usuario
@@ -776,10 +791,10 @@ export const JournalResolver = {
                     lb: erow.inlbs,
                     ubw: erow.usedBW,  
                     pr      : Number( erow.isPR ), 
-                    est1rm  : erow.est1rm
-                }); 
+                    est1rm  : erow.est1rm,
 
-                //console.log("EST1: ", erow.est1rm)
+                    ...WxDoT_GQLErowFields(erow)
+                });  
 
                 //
                 // lazy init. Exercise...
@@ -964,31 +979,27 @@ export const JournalResolver = {
             if( eids.length )
             {
                 // ordenarlos por ID nos asegura que esten en orden de aparicion. El orden por día ya se hizo arriba...
-                const erows     = await query(`SELECT * FROM erows WHERE logid IN (?) ORDER BY id ASC`, [ logids ]);
-
-                console.log( logids )
+                const erows     = await query(`SELECT * FROM erows WHERE logid IN (?) ORDER BY id ASC`, [ logids ]); 
 
                 erows.forEach( erow=>{
 
                     const eblock = rows.find(row=> row.logid==erow.logid && row.e==erow.eid && row.block==erow.block );
 
-                    console.log(erow)
-
                     if(!eblock)
                     {
-                        // wtf?????? Si el jlog no hizo referencia a este erow, significa que está "perdido". Nada apunta a él.
-                        console.log("WTF??? LOST", erow)
+                        // wtf?????? Si el jlog no hizo referencia a este erow, significa que está "perdido". Nada apunta a él. 
                         return;
                     }
 
                     const set = {
-                        //usebw: erow.usedBW,
-                        v: erow.usedBW? erow.added2BW : erow.wkg,
+
+                        v: erow.usedBW? erow.added2BW : erow.wkg, 
                         r: erow.reps,
                         s: erow.sets,
                         c: erow.comment,
-                        rpe: erow.rpe
-                        //lb: erow.inlbs
+                        rpe: erow.rpe,
+                            
+                        ...WxDoT_GQLErowFields(erow) 
                     };
 
                     if( erow.usedBW )
@@ -1090,7 +1101,6 @@ export const JournalResolver = {
     }
 }
 
-
 /**
  * Devuelve el último known exercise de este usuario antes de esa fecha.
  */
@@ -1153,7 +1163,7 @@ const _getYMDfromRange = ( ymd, range, userInfo, requestorUID )=>{
  */
 const __erowEsPR = ( erow, erows, isRMPR=null ) => {
 
-    if( erow.reps<=0 ) return false; 
+    if( erow.reps<=0 || erow.type!=0 ) return false; 
     
 
         //
@@ -1300,7 +1310,7 @@ const __jrangeCalculateEffInt = async ( eid2PRs, exercises, days ) => {
    
                     // setear EFF e INT
  
-                    eblock.sets.forEach(set=>{
+                    eblock.sets.filter( set=>set.type==0).forEach(set=>{
 
                         set.int = (int>0 ? Math.round( (set.w / int)*100 ) / 100 : 1);    //--- round a 2 solo decimal 
 
