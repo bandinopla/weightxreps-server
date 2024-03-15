@@ -81,8 +81,13 @@ export const SaveJournalResolver = {
 
                                 if( row.on )
                                 {
-                                    lastDay = { on:row.on, did:[] };
-                                    out.push(lastDay); 
+                                    lastDay = out.find(d=>d.on==row.on) ;
+                                    
+                                    if(!lastDay)
+                                    {
+                                        lastDay = { on:row.on, did:[] };
+                                        out.push(lastDay); 
+                                    }
                                 }
                                 else 
                                 { 
@@ -226,9 +231,6 @@ export const SaveJournalResolver = {
                         // 
                         if( markedForDeletion )
                         {
-
-                            // TODO: if something was created like exercises or tags, we should roll back those inserts....
-
                             //
                             // borrar log
                             //
