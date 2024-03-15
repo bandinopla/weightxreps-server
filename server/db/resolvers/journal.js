@@ -358,7 +358,11 @@ export const JournalResolver = {
             //
             var log = await query(`SELECT * FROM logs WHERE uid=? AND fecha_del_log=? LIMIT 1`, [ uid, ymd ]);
 
-            if( !log.length || log[0].log=="" ) //should never happen but... just in case...
+            //
+            // A log can be empty. As @azothriel mentioned that she sometimes wants to save an empty workout to log the bodyweight...
+            // so log can be ""
+            //
+            if( !log.length ) //should never happen but... just in case...
                      return; 
 
             //
