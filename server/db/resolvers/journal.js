@@ -13,6 +13,7 @@ import { decode } from 'html-entities';
 import { ExercisesResolver } from "./exercises.js";
 import { getUTags, getUTagsRangeData } from "./tags.js";
 import { WxDoT_DistanceOf, WxDoT_ForceOf, WxDoT_SpeedOf, WxDoT_GQLErowFields } from "./weight_x_distance_or_time.js";
+import * as emoji from 'node-emoji'
 
 /**
  * Devuelve la info del usuario si no estamos ni bloqueados ni el usuario que se pide es privado.
@@ -604,7 +605,7 @@ export const JournalResolver = {
                         s   : set.sets,
                         lb  : set.inlbs,
                         ubw : set.usedBW,
-                        c   : decode( set.comment ) ,
+                        c   : emoji.emojify( set.comment ) ,
                         rpe : set.rpe, //<- puede ser 0 
                         pr  : set.isPR? 1 : 0,
                         est1rm: set.est1rm,
@@ -644,7 +645,7 @@ export const JournalResolver = {
 
             return {
                 id          : log.id,
-                log         : log.log,
+                log         : emoji.emojify(log.log) ,
                 fromMobile  : log.fromMobile==1,
                 bw          : context.userInfo.canShowBW()? log.bw : 0, // El BW se saca siempre del journal post... || context.userInfo.bw
                 eblocks,

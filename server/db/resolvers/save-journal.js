@@ -4,9 +4,9 @@ import { lb2kg } from "../../utils/lb2kg.js";
 import { query, transaction } from "../connection.js";
 import { __recalculateExerciseStats } from "./exercises.js"; 
 import { addEditorUtags, createNewTagsIfAny, deleteUnusedUTags, deleteUTagsFromLog, getUTagId, getUTags, preventDuplicatedUTagsOnSave, utagTokenToText } from "./tags.js";
+import * as emoji from 'node-emoji'
 
-//https://stackoverflow.com/a/63464318/18693152 
-const removeWeirdChars = str=>str.replace(/[^\p{L}\p{N}\p{P}\p{Z}{\^\$\n}]/gu, '');
+const removeWeirdChars = str=>emoji.unemojify(str); 
 
 export const SaveJournalResolver = {
 

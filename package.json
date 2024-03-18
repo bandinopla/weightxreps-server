@@ -40,6 +40,7 @@
     "jsonwebtoken": "^8.5.1",
     "md5": "^2.3.0",
     "mysql": "^2.18.1",
+    "node-emoji": "^2.1.3",
     "nodemailer": "^6.6.5",
     "nodemon": "^2.0.12",
     "stream-to-promise": "^3.0.0",
