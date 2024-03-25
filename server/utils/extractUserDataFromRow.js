@@ -1,4 +1,4 @@
-import { getForumRoleById } from "../db/resolvers/forum.js";
+import { getForumRoleById } from "../db/resolvers/forum/data.js";
 import { getAvatarHash } from "./get-avatar-hash.js";
 
 

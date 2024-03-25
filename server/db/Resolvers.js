@@ -16,7 +16,7 @@ import { SupportResolver } from "./resolvers/Support.js";
 import { AchievementsResolver } from "./resolvers/achievements.js";
 import { VideosResolver } from "./resolvers/videos.js"; 
 import { TwitterResolver } from "./resolvers/Twitter.js";
-import { ForumResolver } from "./resolvers/forum.js";
+import { ForumResolver } from "./resolvers/forum/resolver.js";
 
  
 

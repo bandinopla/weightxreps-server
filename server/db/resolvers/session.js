@@ -9,7 +9,7 @@ import { sendWelcomeMessage } from "./inbox.js";
 import { LoginWithGoogle } from "./session-login-google.js";
 import { LoginWithFirebase } from "./session-login-firebase.js";
 import { getInvalidUsernameError } from "../../utils/getInvalidUsernameError.js";
-import { getForumRoleById} from "./forum.js";
+import { getForumRoleById} from "./forum/data.js";
 
 const getSession = async (parent, args, context) => {
 
@@ -91,7 +91,7 @@ export const createSessionContext = req => {
         if( process.env.NODE_ENV === 'development' )
         {
             //TODO fake session id
-            sessionData = { id:12, uname:"...",usekg:1 };
+            sessionData = { id:1, uname:"...",usekg:1 };
         }
         
     } 

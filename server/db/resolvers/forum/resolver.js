@@ -1,123 +1,22 @@
-import extractUserDataFromRow from "../../utils/extractUserDataFromRow.js";
-import { query } from "../connection.js";
+
+import { query } from "../../connection.js";
 import { decode, encode } from 'html-entities';
-import {slugify} from "../../utils/slugify.js";
-import { LIKE_TYPES } from "./likes-and-follows.js";
-import { extractReferencedUsers, getUsersRefsNotBlocked } from "./inbox.js";
-import { sendEmail } from "../../utils/send-email.js";
-import EmailTemplate from "../../email/template.js";
-import { escapeHTML } from "../../utils/escapeHTML.js";
-import {packAsToken} from "../../utils/token.js";
-import { getAnnouncementTextById, getAnnouncementsAsMessages, getAnnouncementsCount, getAnnouncementsThreadMessages } from "./forum-announcements.js";
+import {slugify} from "../../../utils/slugify.js";
+import { LIKE_TYPES } from "../likes-and-follows.js";
+import { extractReferencedUsers, getUsersRefsNotBlocked } from "../inbox.js";
+import { sendEmail } from "../../../utils/send-email.js";
+import EmailTemplate from "../../../email/template.js";
+import { escapeHTML } from "../../../utils/escapeHTML.js";
+import {packAsToken} from "../../../utils/token.js"; 
+import extractUserDataFromRow from "../../../utils/extractUserDataFromRow.js";
+import { COOLDOWN_SECONDS_BEFORE_REPOSTING, SECTIONS, FORUM_ROLES, getForumSections as getSections, getForumRoleById , FORUM_ROLE_ACTION } from "./data.js"
 
 /**------------------------------------
  * 
  *  Important: a "@mention" will be equal to a post, but will have no text and `section_id` will be CERO. uid will be the user being mentioned, and parent_id will point to the comment in which it was mentioned.
  * 
  * ------------------------------------
- */
-
-
-/**
- * Time to wait before being able to post again, in seconds.
- */
-const COOLDOWN_SECONDS_BEFORE_REPOSTING = 15;
-
-const FORUM_ROLE_ACTION = {
-    delete:1,
-    note:2 
-}
- 
-export const FORUM_ROLES = {
-    ADMIN: {
-        id: 1,
-        all:true,
-        title: "Forum Admin", //can create/remove forums that he/she has created only.
-        description:"Responsable for administrating the forum"
-    },
-    MODERATOR: {
-        id: 2,
-        can: [
-            FORUM_ROLE_ACTION.delete,
-            FORUM_ROLE_ACTION.note
-        ],
-        title: "Forum Moderator",
-        description:"Responsable for moderating the posts in the forum, can delete or attach notes to posts."
-    },
-    NOTER: {
-        id: 3,
-        can: [
-            FORUM_ROLE_ACTION.note
-        ],
-        title: "Community Noter",
-        description:"Can attach notes to posts to complement or dispute information."
-    }
-}
-
-/**
- * Hardcoded sections...
- * NEW SECTIONS can be added in the database, will be the posts with everything set to CERO. The post_preview will be the title and the post_comment the description.
- */
-const SECTIONS = [
-    {
-        id: 5,
-        name:"Announcements",
-        description: "Site news / global messages",
-        slug:"announcements", 
-        getForumMessages(){
-            return getAnnouncementsAsMessages.bind(this)
-        },
-        getThreadMessages(){
-            return getAnnouncementsThreadMessages.bind(this)
-        },
-        idIsMine: id=>id.indexOf("global:")>-1,
-        resolvePointerToText: getAnnouncementTextById,
-        getThreadCount: getAnnouncementsCount,
-        threadsCantBeDeleted: true,
-        threadsCantBeCreated: true
-    },
-    {
-        id: 1,
-        name: "General",
-        description: "General talk about anything and everything",
-        slug:"general-talk"
-    },
-    {
-        id: 2,
-        name: "Routines | Programs",
-        description: "Questions about specific routines or programs or to share experiences in those programs...",
-        slug:"routines-and-programs"
-    },
-    {
-        id: 3,
-        name: "Nutrition | Supplements",
-        description: "Talk about nutrition and things to consume to improve health or performance",
-        slug:"nutrition-and-supplements"
-    },
-    {
-        id: 4,
-        name: "Help | Bug Reports | Suggestions",
-        description: "Suggest changes or report bugs in the site, give your opinion on how things run here.",
-        slug:"help-bug-reports-suggestions"
-    }
-]
-
-/**
- * We have hardoded sections but also support creating new sections in the DB. They have sectionID and parentId equal to CERO.
- */
-const getSections = async ()=>{
-    //
-    // new sections added manually in the DB...
-    //
-    const dbSections = await query(`SELECT * FROM forum WHERE section_id=0 AND parent_id=0 ORDER BY id ASC`); // becaue a mention will have section=0 but parent_id>0
-
-    return SECTIONS.concat( dbSections.length? dbSections.map(s=>({
-        id: 100 + s.id,
-        name: s.post_preview,
-        description: s.post_comment,
-        slug: slugify(s.post_preview), 
-    })) : [] );
-}
+ */ 
 
 
 
@@ -256,40 +155,33 @@ export const ForumResolver = {
         //
         getThreadMessages: async (parent, args, context) =>{
 
-            const limit         = args.limit || 10; 
+            const limit         = args.limit || 10;  
             let messages        ;
-            let thread          ;
-            let sectionHook     = SECTIONS.find(s=>s.idIsMine && s.idIsMine(args.messageId));
 
-            //
-            // this thread is refering to a global.
-            //
+            let thread          = await query(`SELECT * FROM forum WHERE id=?`, [ args.messageId ]);
+
+            let sectionHook     = SECTIONS.find( s=> s.idIsMine && (s.idIsMine(args.messageId) || s.idIsMine(thread[0]?.post_comment)) );
+
             if( sectionHook )
             {
                 thread      = [];
-                messages    = await sectionHook.getThreadMessages()( args, limit, thread ); 
+                messages    = await sectionHook.getThreadMessages()( args, limit, thread );
             }
             else 
             {
-                //
-                // let's find the thread...
-                //
-                thread = await query(`SELECT * FROM forum WHERE id=?`, [ args.messageId ]);
-
                 if( !thread.length )
                 {
                     throw new Error("The thread doesn't seem to exist...");
-                } 
+                }  
 
                 //
                 // get all messages of the thread...
                 //
                 messages        = await query(`SELECT * FROM forum 
-                                                    WHERE (thread_id=? OR id=?) 
-                                                    AND section_id>0  # exclude mentions...
-                                                    ORDER BY id ASC LIMIT ${limit} ${args.offset? `OFFSET ${args.offset}` : ''}`, [ args.messageId,args.messageId ]);
-            }
-            
+                                                WHERE (thread_id=? OR id=?) 
+                                                AND section_id>0  # exclude mentions...
+                                                ORDER BY id ASC LIMIT ${limit} ${args.offset? `OFFSET ${args.offset}` : ''}`, [ args.messageId,args.messageId ]);
+            }  
 
 
             let users           = []; 
@@ -481,7 +373,7 @@ export const ForumResolver = {
             } 
             //#endregion
 
-            if( $section.threadsCantBeCreated )
+            if( $section.threadsCantBeCreated && !parentid )
             {
                 throw new Error("Threads can't be created in this forum.")
             }
@@ -621,6 +513,11 @@ export const ForumResolver = {
             {
                 throw new Error("You can only add notes to messages.");
             } 
+
+            if( msg[0].post_comment=="" )
+            {
+                throw new Error("You can't add a note to a deleted message.");
+            }
             //#endregion
 
             const remove = args.note=="x";
@@ -650,8 +547,8 @@ export const ForumResolver = {
                 throw new Error("The message you are trying to delete doesn't seem to exist...");
             }
              
-            let section = SECTIONS.find(s=>(s.id==msg[0].section_id && !msg.thread_id && s.threadsCantBeDeleted ) );
-            if( section )
+            let section = SECTIONS.find(s=>( s.id==msg[0].section_id && !msg.thread_id && s.threadsCantBeDeleted ) );
+            if( msg[0].thread_id==0 && section )
             {
                 throw new Error(`Threads in forum [${section.name}] can't be deleted.`);
             }
@@ -696,209 +593,8 @@ const getUserForumRole = async uid => {
     {
         throw new Error("Can't find user with id:"+uid)
     }
-}
+}  
  
-
-/**
- * returns the role object with that ID...
- * @returns {{ id: number, key:string, title: string, canDo:(action:number)=>boolean }}
- */
-export const getForumRoleById = roleId => {
-
-    if(!roleId) return;
-
-    const roleEntry = Object.entries(FORUM_ROLES).find(entry=>entry[1].id==roleId || entry[0]==roleId);
-    const roleConfig = roleEntry?.[1];
-
-    if( roleConfig )
-    {
-        return {
-            ...roleConfig,
-            key: roleEntry[0],
-            canDo: action => roleConfig.all || roleConfig.can?.indexOf(action)>-1,
-
-            toJs() {
-
-                var actions = Object.entries(FORUM_ROLE_ACTION);   
-
-                return {
-                    ...this,
-                    can: this.can?.map( actionID=>actions.find( a=>a[1]==actionID )?.[0] )
-                }
-            }
-        };
-    } 
-}
-
-/**
- * Gets the notifications related to new replies in forum's threads or to comments done by the user.
- */
-export const getForumMessagesNotifications = async ($toUID, $where, reverse, whereParams, LIMIT, BY, TO, JOWNER) => {
-
-    //buscar todos los threads hechos por este usuario
-    //y todos los replies con esos threadids...
-    const messages = await query(`
-        SELECT
-       
-            A.id AS notificationID,
-            A.section_id,
-            C.section_id AS parentSectionId,
-            C.id AS parentId,
-
-            A.thread_id,
-            SUBSTRING( B.post_comment, 1, 80 ) AS threadTitle,
-            SUBSTRING( C.post_comment, 1, 80 ) AS parentThreadTitle, 
-
-            (A.section_id=0) AS isMention,
-
-            A.fecha_de_publicacion AS fecha,
-            "forum-message" AS subject,
-
-            A.post_comment AS message,
-            C.post_comment AS parentMessage,
-
-            ${ BY.userFieldsQuery() },
-            ${ TO.userFieldsQuery() },
-            ${ JOWNER.userFieldsQuery() }
-        
-
-        FROM forum AS A
-
-        #
-        # here we do inner join, because notifications are sent for messages that are a reply to something. A thread_id=0 or parent_id=0 will never be notified to anyone.
-        #
-        INNER JOIN forum AS C ON C.id=A.parent_id 
-        INNER JOIN forum AS B ON B.id=A.thread_id
-        
-
-        ${ BY.innerJoinOnIdEquals("A.uid") } # message's Author
-        ${ TO.innerJoinOnIdEquals("C.uid") } # Replying to this user
-        ${ JOWNER.leftJoinOnIdEquals(["B.uid","A.uid"]) } # Thread Owner
-
-        WHERE 
-            (
-                (
-                ( C.uid=${$toUID}           # a reply to a message we posted.
-                    OR B.uid=${$toUID}      # a comment in one of our threads (not necesarly to us...)
-                ) 
-                AND A.uid!=${$toUID}        # author of the message is not us.
-                AND A.section_id>0          # message has a section ( mentions have section=0 )
-                ) 
-                OR 
-                ( A.uid=${$toUID} AND A.section_id=0 ) # it is a mention, someone mentioned us using the @XXX syntax
-            )
-
-            ${$where.replace(/\.fecha\b/g,".fecha_de_publicacion")}
-
-            ORDER BY A.fecha_de_publicacion ${reverse?"ASC":"DESC"} 
-            ${ LIMIT ? `LIMIT ${LIMIT}` : "" } 
-
-    `, [whereParams]);
-
-
-     
-    //#region resolve message pointers
-    const possiblePointers = ["threadTitle","parentThreadTitle","message","parentMessage"];
- 
-    //
-    // some of the texts "point" to text in other tables...
-    //
-    await resolveForumPointers( messages, possiblePointers );
-
-    //#endregion
-
-    // encontrar la posisión del item en el thread...
-    var $sections   = SECTIONS;
-    var sectionIds    = [ ...new Set(messages.map(r=>r.section_id)) ]; // unique section IDs
-    //var threadIds   = [ ...new Set(messages.map(r=>r.thread_id)) ]; // unique thread IDs
- 
-    if( sectionIds.some(s=>s>100 ) )
-    {
-        $sections      = await getSections();
-    }   
-
-    //
-    // in the case of a mention, "TO" is the one who mentioned us ("BY" in this case)
-    //
-    return messages.map( m=>({
-        ...m, 
-        forumSlug   : $sections.find( s=>s.id == (m.isMention==1? m.parentSectionId : m.section_id) ).slug,
-        threadId    : m.thread_id,
-        threadSlug  : slugify( m.threadTitle.substring(0,80) ) ,
-        postId      : m.isMention==1? m.parentId : m.notificationID
-    }));
-
-
-}
-
- 
-
-/** 
- * @param {Array<any>} arr 
- * @param {Array<string>} possiblePointers  -properties on arr[*] that might have a pointer
- */
-export const resolveForumPointers = async (arr, possiblePointers) => {
-
-    if(!arr.length) return;
-
-    //
-    // collect pointers to texts outside the forum... This is handled by the section.
-    //
-    const pointerResolvers = arr.reduce( (acc, itm)=>{
-
-        possiblePointers.forEach( prop=>{
-            const section = SECTIONS.find(s=>itm[prop] && s.idIsMine && s.idIsMine( itm[prop] ) && s.resolvePointerToText );
-            if( section )
-            { 
-                if( !acc.has(section) )
-                {
-                    acc.set(section,[]);
-                }
-
-                acc.get(section).push({
-                    pointer     : itm[prop],
-                    onResolved  : text=>itm[prop]=text
-                });
-            }
-        });
-
-        return acc;
-    } ,new Map());
-
-    if( pointerResolvers?.size > 0)
-    { 
-        //
-        // for each pointer to external text, add the text it is refering to...
-        //
-        await Promise.all([ ...pointerResolvers ].map( async ([resolver,pointers])=>{
-            const uniquePointers = [ ...new Set(pointers.map(p=>p.pointer)) ];
-            const resolvedTexts  = await resolver.resolvePointerToText( uniquePointers );
-
-            pointers.forEach( p=>{
-                const pointerIndex = uniquePointers.indexOf( p.pointer );
-                p.onResolved( resolvedTexts[pointerIndex] );
-            });
-        }));
-    }
-}
-
-/**
- * expects items to be an array of items with a property "forumSlug" which will be a section id, and the idea is to replace it with the actual slug.
- */
-export const addMissingForumSectionSlugs = async ( items )=> {
- 
-    var $sections = SECTIONS;
-
-    if( items.some(s=>s.forumSlug>100 ) )
-    {
-        $sections = await getSections();
-    } 
-
-    items.forEach( itm=>{
-        itm.forumSlug = $sections.find(s=>s.id==itm.forumSlug).slug;
-    })
-
-}
 
 /**
  * Total posts (including threads) done by a user in the forum.

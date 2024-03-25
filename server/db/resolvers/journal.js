@@ -14,7 +14,8 @@ import { ExercisesResolver } from "./exercises.js";
 import { getUTags, getUTagsRangeData } from "./tags.js";
 import { WxDoT_DistanceOf, WxDoT_ForceOf, WxDoT_SpeedOf, WxDoT_GQLErowFields } from "./weight_x_distance_or_time.js";
 import * as emoji from 'node-emoji'
-import {  getForumStatusJsObject , getForumRoleById } from "./forum.js";
+import {  getForumRoleById } from "./forum/data.js"; 
+import {  getForumStatusJsObject } from "./forum/resolver.js";
 
 /**
  * Devuelve la info del usuario si no estamos ni bloqueados ni el usuario que se pide es privado.

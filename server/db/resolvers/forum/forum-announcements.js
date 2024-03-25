@@ -1,4 +1,4 @@
-import { query } from "../connection.js";
+import { query } from "../../connection.js";
 
 export async function getAnnouncementsAsMessages (args, limit) {
 

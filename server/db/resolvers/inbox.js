@@ -6,7 +6,12 @@ import { escapeHTML } from "../../utils/escapeHTML.js";
 import EmailTemplate from "../../email/template.js";
 import {packAsToken} from "../../utils/token.js";
 import { LIKE_TYPES } from "./likes-and-follows.js";
-import { addMissingForumSectionSlugs, getForumMessagesNotifications, getForumRoleById, resolveForumPointers } from "./forum.js";
+
+import { getForumRoleById } from "./forum/data.js";
+import { addMissingForumSectionSlugs, resolveForumPointers } from "./forum/helpers.js";
+import { getForumMessagesNotifications } from "./forum/forum-notifications.js";
+
+
 import { decode, encode } from 'html-entities';
 import {slugify} from "../../utils/slugify.js";
 /**
