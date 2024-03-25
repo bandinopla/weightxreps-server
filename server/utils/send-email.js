@@ -91,7 +91,7 @@ export const sendEmail = async ( touid, subject, message, optionalEmail ) => {
     //
     // if we are sending to just 1 target but it has no email... use the optionalEmail or fail.
     //
-    if( tos.length==1 && !emails?.[0].email  )
+    if( tos.length==1 && !emails[0]?.email  )
     {
         if( optionalEmail )
         {

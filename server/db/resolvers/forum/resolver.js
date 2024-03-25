@@ -261,7 +261,7 @@ export const ForumResolver = {
 
             let myId            = context.session?.id;
             let myUname         = context.session?.uname;
-            let parentid        = args.parentId; 
+            let parentid        = args.parentId ?? 0; 
             let thread_id       = 0;
             let sectionId       = args.sectionId;
             let message         = args.message; 
@@ -278,10 +278,12 @@ export const ForumResolver = {
 
             //#region PREVENT SPAM POSTING... ponele...
             //
-            const lastTime = await query(`SELECT TIMESTAMPDIFF(SECOND, fecha_de_publicacion, NOW()) AS secondsSince FROM forum WHERE uid=? ORDER BY id DESC LIMIT 1`, [ myId ]);
+            const lastTime = await query(`SELECT fecha_de_publicacion FROM forum WHERE uid=? ORDER BY id DESC LIMIT 1`, [ myId ]);
             if(lastTime.length)
             {
-                if( lastTime[0].secondsSince<COOLDOWN_SECONDS_BEFORE_REPOSTING )
+                const secondsSince = (new Date().valueOf() - lastTime[0].fecha_de_publicacion.valueOf()) / 1000;
+
+                if( secondsSince<COOLDOWN_SECONDS_BEFORE_REPOSTING )
                 {
                     throw new Error(`You recently posted less than ${COOLDOWN_SECONDS_BEFORE_REPOSTING} seconds ago, chill for a bit before posting again...`);
                 }
@@ -373,11 +375,10 @@ export const ForumResolver = {
             } 
             //#endregion
 
-            if( $section.threadsCantBeCreated && !parentid )
+            if( $section.threadsCantBeCreated && parentid==0 )
             {
                 throw new Error("Threads can't be created in this forum.")
             }
-
  
             const insert    = await query(`INSERT INTO forum SET ?`, {
                 uid: myId,
@@ -432,9 +433,9 @@ export const ForumResolver = {
                 //
                 // mentions: exclude session user and the target of the reply. 
                 //
-                const mentions      = urefs.filter( u=> ( u.id!=myId && (!replyingToUID || u.id!=replyingToUID) ) ); 
+                const mentions      = urefs?.filter( u=> ( u.id!=myId && (!replyingToUID || u.id!=replyingToUID) ) ); 
     
-                if( mentions.length )
+                if( mentions?.length )
                 { 
                     //
                     // filter out cases where the user blocked the mentioned user or vice versa...
