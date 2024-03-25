@@ -12,6 +12,8 @@ fragment UserFields on User {
             isf
             joined
             usekg
+
+            forumRole
             
             custom1RM
             est1RMFactor
@@ -31,6 +33,8 @@ fragment BriefUserFields on User {
     isf
     sok 
     slvl
+
+    forumRole
 }
 
 mutation UploadAvatar ($file: Upload!) {

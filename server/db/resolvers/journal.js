@@ -14,6 +14,7 @@ import { ExercisesResolver } from "./exercises.js";
 import { getUTags, getUTagsRangeData } from "./tags.js";
 import { WxDoT_DistanceOf, WxDoT_ForceOf, WxDoT_SpeedOf, WxDoT_GQLErowFields } from "./weight_x_distance_or_time.js";
 import * as emoji from 'node-emoji'
+import {  getForumStatusJsObject , getForumRoleById } from "./forum.js";
 
 /**
  * Devuelve la info del usuario si no estamos ni bloqueados ni el usuario que se pide es privado.
@@ -30,24 +31,10 @@ export const GetUserInfo = async ( requestorUID, requestedUserIdentifier, identi
     }
     else 
     { 
-        //let searchParam       = isNaN(requestedUserIdentifier)? "uname" : "id";  
-        let searchParam       = identifierIsUname? "uname" : "id";  
- 
-        //let searchParam         = [ requestedUserIdentifier ]; 
-        // var extra               = ""; //isNaN(requestedUserIdentifier)? "" : " OR id=?"; 
+        let searchParam       = identifierIsUname? "uname" : "id";   
 
-        // if( identifierIsUname )
-        // {
-        //     extra = " uname=? ";
-        // }
-        // else 
-        // {
-        //     extra = " id=? ";
-        // }
-        
-
-            const result      = await query(`SELECT * FROM users WHERE ${searchParam}=? AND deleted=0 LIMIT 1`, [requestedUserIdentifier]); 
-            row = result[0];
+        const result      = await query(`SELECT * FROM users WHERE ${searchParam}=? AND deleted=0 LIMIT 1`, [requestedUserIdentifier]); 
+        row = result[0];
     } 
 
     if( !row )
@@ -222,6 +209,29 @@ export const JournalResolver = {
 
 
     Query: {
+        userBasicInfo: async ( parent, args, context )=> {
+
+            const locators  = args.of? [args.of] : args.ofThese;
+
+            const urows     = await query(`SELECT * FROM users WHERE id IN (?) OR uname IN (?)`,[ locators, locators ]);
+ 
+            if( !urows.length )
+            {
+                throw new Error("Nothing found..."); 
+            } 
+
+            return urows.map( row=>{
+
+                const user = extractUserDataFromRow( row );
+
+                delete user.bw;
+                delete user.age; 
+
+                return user;
+
+            });
+        },
+
         userInfo: async ( parent, args, context )=> { 
 
             let myId        = context.session?.id; 
@@ -254,6 +264,7 @@ export const JournalResolver = {
             return {
                 user, 
                 daysLogged: daysLogged[0]?.total || 0,
+                forum: await getForumStatusJsObject( user ),
                 best3: chosenBests
                              .map( etype=>{
 

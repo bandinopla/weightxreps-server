@@ -5,7 +5,10 @@ import { sendEmail } from "../../utils/send-email.js";
 import { escapeHTML } from "../../utils/escapeHTML.js";
 import EmailTemplate from "../../email/template.js";
 import {packAsToken} from "../../utils/token.js";
-
+import { LIKE_TYPES } from "./likes-and-follows.js";
+import { addMissingForumSectionSlugs, getForumMessagesNotifications, getForumRoleById, resolveForumPointers } from "./forum.js";
+import { decode, encode } from 'html-entities';
+import {slugify} from "../../utils/slugify.js";
 /**
  * 
  * 
@@ -185,7 +188,7 @@ export const InboxResolvers = {
                                         #
                                         # Inner join with DMs only. (to exlcude likes to journal comments)
                                         #
-                                        INNER JOIN messages AS B ON B.id=A.source_id AND A.type_id=3 AND B.logid=0 
+                                        INNER JOIN messages AS B ON B.id=A.source_id AND A.type_id=${ LIKE_TYPES.MESSAGE } AND B.logid=0 
 
                                         WHERE 
 
@@ -446,6 +449,7 @@ export const InboxResolvers = {
     const BY            = new UserFieldsManager("D","by_");
     const TO            = new UserFieldsManager("E","to_"); 
     const JOWNER        = new UserFieldsManager("F","jowner_"); 
+    const TOWNER        = new UserFieldsManager("T","towner_");  //thread owner
 
     let extraWHERE      = "";
     let queryParams     = [];
@@ -458,10 +462,7 @@ export const InboxResolvers = {
     {
         extraWHERE = " AND (B.fecha < ? )"; 
 
-        //
-        // porque se usa 2 veces...
-        //
-        queryParams         = new Array(2).fill(olderThan);
+        queryParams         = [olderThan];
         queryDateLimit      = olderThan;
     }
     else if( newerThan ) 
@@ -469,10 +470,7 @@ export const InboxResolvers = {
         extraWHERE = " AND (B.fecha > ? )";  
         reverse = true;
 
-        //
-        // porque se usa 2 veces...
-        //
-        queryParams         = new Array(2).fill(newerThan); 
+        queryParams         = [newerThan];
         queryDateLimit      = newerThan;
     }
     //#endregion
@@ -538,7 +536,7 @@ export const InboxResolvers = {
                                     ${ $onlyThisLOG!=null? $onlyThisLOG<0? " AND B.logid > 0 " : " AND B.logid="+$onlyThisLOG :"" } # Only this log... 
 
 
-                                    ${extraWHERE} AND 123  #<<--- later in the code i search for this "123"
+                                    ${extraWHERE}
 
 
                                     ORDER BY B.fecha ${reverse?"ASC":"DESC"} 
@@ -554,9 +552,49 @@ export const InboxResolvers = {
                         #
                         ORDER BY AB.fecha DESC`;  
 
-    const JOURNAL_LIKE_TYPE = 1;
-    const LIKE_TO_MESSAGE_TYPE = 3; 
-    const $touid = `IF( A.type_id=${JOURNAL_LIKE_TYPE}, C.uid, B.uid )`; //<--- to whom the like was given.
+
+    //
+    // get messages
+    //
+    let rows = $onlyTheseMessages? 
+                    $onlyTheseMessages.length? 
+                        await query($sql,[$onlyTheseMessages]) : []
+               : await query( $sql, queryParams );  
+
+
+    //#region CAP other queries to match the "main" query date range.
+    // limit...
+    const rowsHasLIMIT = !$onlyTheseMessages && !noLimit && rows.length==LIMIT;
+     
+    if( rowsHasLIMIT )
+    {
+        const newestRow     = rows[0].fecha;
+        const oldestRow     = rows[ rows.length-1 ].fecha;
+
+        if( olderThan ) 
+        {
+            extraWHERE += " AND (B.fecha >= ? )";
+            queryParams.push(oldestRow);
+        }
+        else if( newerThan ) 
+        {
+            extraWHERE += " AND (B.fecha <= ? )";
+            queryParams.push(newestRow);
+        }
+    }
+    //#endregion
+
+
+
+    const JOURNAL_LIKE_TYPE     = LIKE_TYPES.LOG;
+    const LIKE_TO_MESSAGE_TYPE  = LIKE_TYPES.MESSAGE; 
+
+    //
+    // resolve who is the target of this like.
+    //
+    const $touid = `IF( A.type_id=${JOURNAL_LIKE_TYPE}, C.uid, 
+                        IF( A.type_id=${LIKE_TO_MESSAGE_TYPE} , B.uid,  
+                                Forum.uid ) )`; //<--- to whom the like was given.
     let likesSQL = `
                     SELECT * FROM (
                     # ----------------------------------------------------------------------------------------------------------------------------------------
@@ -568,17 +606,28 @@ export const InboxResolvers = {
                                 0 AS topic, 
                                 0 AS isGlobal, 
                                 A.uid, 
-                                IF( A.type_id=${JOURNAL_LIKE_TYPE}, "like-on-log", "like-on-comment") AS subject,  
+                                A.type_id AS likeType,
+  
                                 B.message , #<---- can be null if it was a like on a journal
                                 A.fecha, 
-                                IF( A.type_id=${JOURNAL_LIKE_TYPE}, 0, A.source_id )       AS parentid,  
+                                IF( A.type_id=${LIKE_TO_MESSAGE_TYPE}, A.source_id, 0 ) AS parentid,  
                                 C.id AS logid, 
                                 C.fecha_del_log AS ymd,
                                 0 as parentuid,
 
+                                #
+                                # like on a forum post...
+                                #
+                                Forum.id AS forumPostId,
+                                Forum.post_comment AS forumPostComment,
+                                Forum.thread_id AS forumThreadId,
+                                Forum.section_id AS forumSectionId, 
+                                SUBSTRING( Thread.post_comment, 1, 80 ) AS threadTitle,
+
                                 ${ BY.userFieldsQuery() },
                                 ${ TO.userFieldsQuery() },
-                                ${ JOWNER.userFieldsQuery() } 
+                                ${ JOWNER.userFieldsQuery() }, 
+                                ${ TOWNER.userFieldsQuery() }
                                 
                             
                         FROM likes_history AS A 
@@ -593,10 +642,17 @@ export const InboxResolvers = {
                         #
                         LEFT JOIN logs AS C       ON C.id=IF( A.type_id=${JOURNAL_LIKE_TYPE}, A.source_id, IF( A.type_id=${LIKE_TO_MESSAGE_TYPE}, B.logid, 0 ) )
 
+                        #
+                        # like/dislike on forum message 
+                        #
+                        LEFT JOIN forum AS Forum ON ( A.type_id=${ LIKE_TYPES.FORUM_MESSAGE_LIKE } OR A.type_id=${ LIKE_TYPES.FORUM_MESSAGE_DISLIKE } ) AND Forum.id=A.source_id 
+                        LEFT JOIN forum AS Thread ON Thread.id=Forum.thread_id #--- thread post...
+
 
                         ${ BY.innerJoinOnIdEquals("A.uid") }
-                        ${ TO.innerJoinOnIdEquals(`IF( A.type_id=${JOURNAL_LIKE_TYPE}, C.uid, B.uid )`) }
-                        ${ JOWNER.leftJoinOnIdEquals("C.uid") }
+                        ${ TO.innerJoinOnIdEquals( $touid ) }
+                        ${ JOWNER.leftJoinOnIdEquals("C.uid") } 
+                        ${ TOWNER.leftJoinOnIdEquals(["Thread.uid","Forum.uid"]) } 
 
  
                         WHERE 
@@ -604,10 +660,18 @@ export const InboxResolvers = {
                             ${ $onlyTheseLikes? `A.id IN (?)` 
                                 : 
                                 `   #
-                                    #  solo likes en journal o comments.
+                                    #  in DM mode we only care about likes to messages
                                     #
-                                    (A.type_id=${JOURNAL_LIKE_TYPE} OR A.type_id=${LIKE_TO_MESSAGE_TYPE})  
-        
+                                    ${ DM_MODE? `A.type_id=${LIKE_TO_MESSAGE_TYPE}`
+                                         
+                                        : `
+                                            #
+                                            # not in DM mode...
+                                            #
+                                            (A.type_id=${JOURNAL_LIKE_TYPE} 
+                                            OR A.type_id=${LIKE_TO_MESSAGE_TYPE} 
+                                            OR A.type_id=${LIKE_TYPES.FORUM_MESSAGE_LIKE} 
+                                            OR A.type_id=${LIKE_TYPES.FORUM_MESSAGE_DISLIKE})` } 
         
                                     AND
         
@@ -616,7 +680,8 @@ export const InboxResolvers = {
                                     #
                                     (
                                         (
-                                            ${$onlyTo? `${$touid} =${$onlyTo} `:"1"} 
+                                            # only to this user but ignore it if the user sent likes to itself
+                                            ${$onlyTo? `${$touid}=${$onlyTo} AND A.uid!=${$onlyTo}`:"1"} 
         
                                             ${$onlyFrom? ` ${$onlyTo?" AND " : ""} A.uid=${$onlyFrom}`:" AND 1"}
                                         )
@@ -629,13 +694,13 @@ export const InboxResolvers = {
                                     #
                                     # LOGID filter
                                     #
-                                    ${ $onlyThisLOG<0? " AND C.id>0 " : $onlyThisLOG>0? " AND C.id="+$onlyThisLOG :" AND C.id IS NULL" } 
+                                    ${ $onlyThisLOG<0? " AND 1 " : $onlyThisLOG>0? " AND C.id="+$onlyThisLOG :" AND C.id IS NULL" } 
         
         
                                     #
                                     # Fecha filter...
                                     #
-                                    ${extraWHERE.replace("B.fecha","A.fecha")} 
+                                    ${extraWHERE.replace(/B\.fecha/g,"A.fecha")} 
                                     
                                     
                                     ORDER BY A.fecha ${reverse?"ASC":"DESC"} 
@@ -651,17 +716,6 @@ export const InboxResolvers = {
                             #
                             ORDER BY AB.fecha DESC 
                             `; 
- 
-
-    //
-    // get notifications...
-    //
-    let rows = $onlyTheseMessages? 
-                    $onlyTheseMessages.length? 
-                        await query($sql,[$onlyTheseMessages]) : []
-               : await query( $sql, queryParams );  
-
-
 
     //
     // likes...
@@ -672,31 +726,37 @@ export const InboxResolvers = {
                     : await query( likesSQL, queryParams );      
 
 
-    const rowsHasLIMIT = !$onlyTheseMessages && !noLimit && rows.length==LIMIT;
- 
+                    const type2subbject = {
+                        [LIKE_TYPES.LOG] : "like-on-log",
+                        [LIKE_TYPES.MESSAGE] : "like-on-comment",
+                        [LIKE_TYPES.FORUM_MESSAGE_LIKE] : "like-on-forum-post",
+                        [LIKE_TYPES.FORUM_MESSAGE_DISLIKE] : "dislike-on-forum-post",
+                    }
+
+                    //
+                    // add the like subject
+                    //
+                    likesRows = likesRows.map(row=>({
+                        ...row,
+                        subject: type2subbject[row.likeType]
+                    }))   
+
+                    // just in case... ignore/discard unknown like types...
+                    .filter( row=>row.subject ); 
 
 
-    // 
-    // CAP / Cut overflow rsultset...
     //
-    if( rowsHasLIMIT && likesRows.length>0 )
-    {     
-        const newestRow     = rows[0].fecha;
-        const oldestRow     = rows[ rows.length-1 ].fecha;
+    // resolve possible pointer to external texts...
+    //
+    await resolveForumPointers(likesRows, ["forumPostComment","threadTitle"]);
 
-        //
-        // we have newer likes, but "rows" probably too, but was limited by LIMIT.
-        //
-        if( newerThan )
-        { 
-            likesRows       = likesRows.filter( row=>row.fecha<=newestRow );
-        }
-        else 
-        { 
-            likesRows       = likesRows.filter( row=>row.fecha>=oldestRow );
-        } 
- 
-    }  
+
+    if( $onlyThisLOG<0 && $onlyTo>0 )
+    {
+        const forumMessagesNotifs = await getForumMessagesNotifications( $onlyTo, extraWHERE.replace(/B\.fecha/g,"A.fecha"), reverse, queryParams, noLimit? 0 : LIMIT, BY, TO, JOWNER );
+
+        rows = rows.concat( forumMessagesNotifs );
+    }
     
 
     //
@@ -709,7 +769,7 @@ export const InboxResolvers = {
     //
     // convert to graphql format
     //
-    return await getInboxGraphQLResponse( rows, BY, TO, JOWNER, partialMessages, DM_MODE );   
+    return await getInboxGraphQLResponse( rows, BY, TO, JOWNER,TOWNER, partialMessages, DM_MODE );   
 } 
 
 
@@ -717,7 +777,7 @@ export const InboxResolvers = {
 /**
  * Convierte el resultado de mysql al que requiere el graphql schema
  */
-const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, partialMessages=false, DM_MODE=false ) => {
+const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER,TOWNER, partialMessages=false, DM_MODE=false ) => {
 
             /**
              * jowners referenciados
@@ -753,7 +813,7 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, partialMessages=fa
               * @param {string} txt
               */
              const shortText = txt => { 
-                txt = unescape(txt).trim();
+                txt = decode(txt).trim();
                 return  txt.length>=SHORT_TEXT_MAX_CHARS? txt.substr(0,SHORT_TEXT_MAX_CHARS): txt;
              }
 
@@ -794,6 +854,7 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, partialMessages=fa
                     var by         = BY.extractUserData(row);
                     var to         = TO.extractUserData(row);
                     var jowner     = JOWNER.extractUserData(row); 
+                    var towner     = TOWNER.extractUserData(row); 
                 }
                 catch( e )
                 { 
@@ -848,6 +909,61 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, partialMessages=fa
                     } );  
                 }
                 //#endregion
+
+                else if( row.subject=="forum-message")
+                {
+                    let notif = {
+                        _type       : "ForumNotification",
+                        id,
+                        when        : row.fecha,
+                        jowner      : userRef( jowner ), // in this case by "jowner" we refer to the thread owner
+                        ymd         : "", 
+                        forumSlug   : row.forumSlug,
+                        threadId    : row.threadId,
+                        threadSlug  : row.threadSlug,
+                        isMention   : row.isMention==1,
+                        postId      : row.postId,
+                    }
+
+                    if( row.isMention==1 )
+                    {
+                        notif.by = userRef( to );
+                        notif.to = userRef( by ); 
+                        notif.text = partialMessages? shortText(row.parentMessage) : decode( row.parentMessage );
+                    }
+                    else 
+                    {
+                        notif.by = userRef( by );
+                        notif.to = userRef( to );
+                        notif.text = partialMessages? shortText(row.message) : decode( row.message );
+                    }
+
+                    notifications.push(notif);
+                }
+
+                //
+                // LIKE or DISLIKE on a forum post
+                //
+                else if( row.subject == 'like-on-forum-post' || row.subject == 'dislike-on-forum-post' )
+                { 
+                    notifications.push({
+                        _type       : "ForumLike",
+                        id,
+                        when        : row.fecha,
+                        by          : userRef( by ),
+                        to          : userRef( to ),
+                        jowner      : userRef( towner ), // in this case by "jowner" we refer to the thread owner
+                        ymd         : "", 
+                        text        : partialMessages? shortText(row.forumPostComment) : decode( row.forumPostComment ), 
+
+                        dislike     : row.subject == 'dislike-on-forum-post',
+                        postId      : row.forumPostId,
+
+                        forumSlug   : row.forumSectionId, // <--- it is a number, we will use this as a flag later...
+                        threadId    : row.forumThreadId || row.forumPostId, //<-- if threadID is null it means the post is the main thread.
+                        threadSlug  : slugify( row.threadTitle ?? row.forumPostComment.substr(0,80) ) 
+                    });
+                }
  
                 //#region SystemNotification
                 else if( row.isGlobal )
@@ -865,7 +981,7 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, partialMessages=fa
                             when            : row.fecha,
                             by              : userRef( by ),
                             to              : userRef( to ),
-                            text            : row.subject+"\n"+ ( partialMessages? shortText(row.message) : unescape( row.message ) ),
+                            text            : row.subject+"\n"+ ( partialMessages? shortText(row.message) : decode( row.message ) ),
                             msgid           : row.id,
                             inResponseToMsg : null,
                             inResponseTo    : null,  
@@ -1009,6 +1125,14 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, partialMessages=fa
              }
              //#endregion
  
+             //#region add missing forum section slugs
+             const withMissingSectionId = notifications.filter(n=>n._type=="ForumLike" && !isNaN(n.forumSlug));
+
+             if( withMissingSectionId.length )
+             {
+                await addMissingForumSectionSlugs( withMissingSectionId );
+             }
+             //#endregion
  
  
              return {
@@ -1025,8 +1149,8 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER, partialMessages=fa
  */
 export class UserFieldsManager {
 
-    static objFields() { return ["id","uname", "joined", "slvl"          ,"sok"                    ,"private","isf", "cc" ]; }
-    static sqlFields() { return ["id","uname", "joined", "supporterLevel","days_left_as_supporter" ,"private","isFemale","country_code","deleted"]; }
+    static objFields() { return ["id","uname", "joined", "slvl"          ,"sok"                    ,"private","isf", "cc", "deleted", "forumRole" ]; }
+    static sqlFields() { return ["id","uname", "joined", "supporterLevel","days_left_as_supporter" ,"private","isFemale","country_code","deleted", "forumRole"]; }
 
     /** 
      * @param {string} table Alias de la tabla que contiene los campos del usuario en un mysql resultset
@@ -1039,7 +1163,17 @@ export class UserFieldsManager {
     }
 
     __joinSWQL( type, what ) {
-        return `${type} JOIN users AS ${this.table} ON ${this.table}.id=${what}`;
+
+        //return `${type} JOIN users AS ${this.table} ON ${this.table}.id${ Array.isArray(what)? " xxx " : "="+what}`;
+        let condition = "";
+        if (Array.isArray(what)) 
+        { 
+            const caseStatements = what.map(item => `CASE WHEN ${item} IS NOT NULL THEN ${item} ELSE NULL END`);
+            condition = `= COALESCE(${caseStatements.join(', ')})`;
+        } else {
+            condition = `=${what}`;
+        }
+        return `${type} JOIN users AS ${this.table} ON ${this.table}.id ${condition}`;
     }
 
     leftJoinOnIdEquals( what ) {
@@ -1065,6 +1199,10 @@ export class UserFieldsManager {
      * {@link UserFieldsManager~userFieldsQuery}
      */
     extractUserData( row ) {
+        if(!row[this.prefix+"id"]) //not found
+        {
+            return;
+        }
 
         let outFields = UserFieldsManager.objFields();
 
@@ -1084,6 +1222,11 @@ export class UserFieldsManager {
         usr.avatarhash = getAvatarHash(usr.id);
 
         usr.joined = new Date(usr.joined).toISOString();
+
+        if( usr.forumRole )
+        {
+            usr.forumRole = getForumRoleById(usr.forumRole).key;
+        }
 
         //console.log( "usr.avatarhash",usr.avatarhash)
 
@@ -1203,39 +1346,17 @@ async function postComment( o )
     {
         //#region extract mentions
 
-        //extraer usernames de message "@"  :  select id, uname  from users where uname IN (...)
-        //si hay logid, obtener el jowner   :  select B.id, B.uname from logs AS A INNER JOIN users AS B ON B.id=A.uid WHERE A.id=logid 
-        //si hay parentid obtener el uid    : select B.id, B.uname from messages AS A INNER JOIN users AS B ON B.id=A.uid WHERE A.id=parentid
-        let referencedUnames = [];
+        const mentions = await extractReferencedUsers( o.message, 10 );
 
-        //
-        // extract referenced users....
-        //
-        o.message.replace(/@(\w+)/g, (_,uname)=>referencedUnames.push(uname) );
-
-        if( referencedUnames.length>10 )
+        if( mentions )
         {
-            throw new Error("You referenced too many users... current limit is 10. You referenced: "+referencedUnames.length );
+            // add each to "tos"
+            mentions?.forEach( u=>tos.push( u.id ) );  
+            //remove duplicates...
+            tos = tos.filter( (v,i,arr)=>arr.indexOf(v)==i );
+            
         }
-
-        //
-        // collect @mentions
-        //
-        if( referencedUnames.length ) 
-        {
-            // obtener mentions...
-            let mentions = await getUsersByUname( referencedUnames );
-
-            //
-            // agregar las mentions que no hayamos ya referenciado...
-            //
-            mentions.forEach( u=>tos.push( u.id ) );  
-        }
-
-        //
-        // quitar duplicados...
-        //
-        tos = tos.filter( (v,i,arr)=>arr.indexOf(v)==i );
+        
         //#endregion 
     } 
 
@@ -1247,28 +1368,17 @@ async function postComment( o )
     //
     // obtain info from all users involved...
     // 
-    const users = await query(`SELECT uname, id, blockedusers FROM users WHERE id=? OR id IN (?)`, [ o.by, tos ]);
+    const users = await getUsersRefsNotBlocked( o.by, tos );
     
-    if( users.length )
-    {
-        //
-        // checks if "who" blocked "blocked"
-        //
-        const isBlocked = (who, blocked)=> ( users.find(row=>row.id==who)?.blockedusers ?? "" )
-                                            .toLowerCase().trim().indexOf( 
-                                                ( users.find(row=>row.id==blocked)?.uname ?? ":" ).toLowerCase().trim()
-                                            )>-1
-
-        //
-        // make sure the author of the email haven't blocked the target of the email and vice versa.
-        //
-        const sendToUIDs = tos.filter( uid=>!isBlocked(o.by, uid) && !isBlocked(uid, o.by) );
+    if( users.length>1 )
+    {  
+        const sendToUIDs = users.filter((u,i)=>i>0).map(u=>u.id);
 
         if( sendToUIDs.length )
         {
             //
             // insert message in DB
-            //
+            // 
             const msg = await _insertMessage( sendToUIDs , { 
                 uid         : o.by,
                 subject     ,
@@ -1316,6 +1426,67 @@ async function postComment( o )
 
     throw new Error("Message can't be send :(");
  
+}
+
+
+/**
+ * finds all username's referenced in the message using @... 
+ * @param {string} $message 
+ * @param {number} $limit 
+ * @returns {Array<{ id:number, uname:string, type:"ref" }}>}
+ */
+export async function extractReferencedUsers( $message, $limit=10 ) { 
+
+        let referencedUnames = [];
+
+        //
+        // extract referenced users....
+        //
+        $message .replace(/(?:^|\W)@([a-z0-9_]{4,80})\b/gi, (_,uname)=>referencedUnames.push(uname) );
+
+        if( referencedUnames.length>$limit )
+        {
+            throw new Error("You referenced too many users... current limit is "+$limit+". You referenced: "+referencedUnames.length );
+        }
+
+        //
+        // collect @mentions
+        //
+        if( referencedUnames.length ) 
+        {
+            // obtener mentions...
+            return await getUsersByUname( referencedUnames ); 
+        }
+}
+
+
+/**
+ * returns a new array of "tos" where nor by or to blocked each other.
+ * @param {number} by 
+ * @param {Array<number>} tos 
+ * @returns {Array<{ id:number, uname:string }>}
+ */
+export async function getUsersRefsNotBlocked( by, tos )
+{
+    //
+    // obtain info from all users involved...
+    // 
+    const users = await query(`SELECT uname, id, blockedusers FROM users WHERE id=? OR id IN (?)`, [ by, tos ]);
+
+    //
+    // checks if "who" blocked "blocked"
+    //
+    const isBlocked = (who, blocked)=> ( users.find(row=>row.id==who)?.blockedusers ?? "" )
+                                        .toLowerCase().trim().indexOf( 
+                                            ( users.find(row=>row.id==blocked)?.uname ?? ":" ).toLowerCase().trim()
+                                        )>-1;
+
+    //
+    // return a new array with all the users that are not blocking each other
+    //
+    return [by, ...tos].filter( uid=>uid==by ||(!isBlocked(by, uid) && !isBlocked(uid, by)) )
+                        .map( uid=>users.find(row=>row.id==uid) )
+    ;
 }
 
 

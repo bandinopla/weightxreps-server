@@ -13,7 +13,20 @@ fragment NotificationFields on Notification {
      ... on IHasText { text } 
      ... on SystemNotification { variant:type } 
 
-     ... on DM { isGlobal } 
+     ... on DM { isGlobal }  
+     ... on IForum {
+        forumSlug 
+        threadId 
+        threadSlug
+     }
+     ... on ForumLike {
+        dislike
+        postId
+     }
+     ... on ForumNotification {
+        isMention
+        postId
+     }
     
 }
 

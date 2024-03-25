@@ -5,6 +5,14 @@ query GetSession {
             ...UserFields
         }
         time
+        forum {  
+            role {
+                id 
+                title
+                can 
+                all
+            }
+        }
     }
 } 
 

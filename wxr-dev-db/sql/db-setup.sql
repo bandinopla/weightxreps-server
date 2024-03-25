@@ -248,6 +248,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `custom1RM` INTEGER UNSIGNED NOT NULL,
     `availableDownloads` INTEGER NOT NULL,
     `blockedusers` VARCHAR(500) NOT NULL,
+    `forumRole` tinyint DEFAULT NULL,
 
     INDEX `isDeleted`(`deleted`),
     INDEX `phoneHASH`(`phoneHASH`),
@@ -311,6 +312,47 @@ CREATE TABLE IF NOT EXISTS `tags_used` (
   INDEX tag_type (`type`)
 );
 
+--
+-- Estructura de tabla para la tabla `forum`
+--
+
+CREATE TABLE IF NOT EXISTS`forum` (
+  `id` int UNSIGNED NOT NULL,
+  `uid` int UNSIGNED NOT NULL,
+  `section_id` int UNSIGNED NOT NULL,
+  `thread_id` int UNSIGNED NOT NULL,
+  `parent_id` int UNSIGNED NOT NULL,
+  `parents_ids` varchar(8000) COLLATE utf8mb4_unicode_ci DEFAULT ' ',
+  `post_preview` varchar(300) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'colamente si es necesario, else, se usa el post comment entero.',
+  `post_comment` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `replies_count` int UNSIGNED NOT NULL,
+  `post_views` int UNSIGNED NOT NULL,
+  `fecha_de_publicacion` datetime NOT NULL
+);
+
+--
+-- Índices para tablas volcadas
+--
+
+--
+-- Indices de la tabla `forum`
+--
+ALTER TABLE `forum`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `uid` (`uid`,`section_id`,`thread_id`,`parent_id`,`fecha_de_publicacion`);
+
+--
+-- AUTO_INCREMENT de las tablas volcadas
+--
+
+--
+-- AUTO_INCREMENT de la tabla `forum`
+--
+ALTER TABLE `forum`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+COMMIT;
+
+ 
 
 
 TRUNCATE TABLE `rpe`;

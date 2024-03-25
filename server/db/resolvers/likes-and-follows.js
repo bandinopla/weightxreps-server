@@ -1,8 +1,14 @@
 import { query } from "../connection.js";
 import extractUserDataFromRow from "../../utils/extractUserDataFromRow.js";
 
+export const LIKE_TYPES = {
+    LOG: 1,
+    MESSAGE:3,
+    FORUM_MESSAGE_LIKE:4,
+    FORUM_MESSAGE_DISLIKE:5,
+}
 
-const __like = async ( likeType, _, args, context ) => {
+const __like = async ( likeType, opositeType, _, args, context ) => {
 
      
     var sourceID    = args.target;
@@ -24,7 +30,35 @@ const __like = async ( likeType, _, args, context ) => {
         // throw new Error("Some crazy error happened...");
     } 
 
+    const current = await query("SELECT id FROM likes_history WHERE uid=? AND type_id=? AND source_id=?", [ myID, likeType, sourceID ]);
+
+    if( current.length>0)
+    {
+        if( !unlikeMode )
+        {
+            if( opositeType )
+            {
+                // in this case, if we like an already liked source, we will toggle the like.
+                unlikeMode = true; 
+            }
+            else 
+            {
+                //ya existe...
+                return "";
+            }
+            
+        }
+        
+    }
+
+
     await query("DELETE FROM likes_history WHERE uid=? AND type_id=? AND source_id=?", [ myID, likeType, sourceID ]);
+
+    if( opositeType )
+    {
+        const opposite = await query("DELETE FROM likes_history WHERE uid=? AND type_id=? AND source_id=?", [ myID, opositeType, sourceID ]);
+        var oppositeWasDeleted = opposite.affectedRows>0;
+    }
 
     if( unlikeMode ) return "deleted!"; 
 
@@ -35,7 +69,7 @@ const __like = async ( likeType, _, args, context ) => {
         fecha           : new Date()
     });
  
-    return results.insertId;
+    return (oppositeWasDeleted?"-":"") + results.insertId;
 }
 
 export const LikesAndFollowsResolver = {
@@ -84,8 +118,10 @@ export const LikesAndFollowsResolver = {
         }
     },
     Mutation: {
-        likeMessage     : __like.bind(null, 3),
-        likeJournalLog  : __like.bind(null, 1),
+        likeMessage         : __like.bind(null, LIKE_TYPES.MESSAGE, false),
+        likeJournalLog      : __like.bind(null, LIKE_TYPES.LOG, false),
+        likeForumMessage    : __like.bind(null, LIKE_TYPES.FORUM_MESSAGE_LIKE, LIKE_TYPES.FORUM_MESSAGE_DISLIKE),
+        dislikeForumMessage : __like.bind(null, LIKE_TYPES.FORUM_MESSAGE_DISLIKE, LIKE_TYPES.FORUM_MESSAGE_LIKE),
 
 
         follow  : async ( parent, args, context )=>{

@@ -18,6 +18,8 @@ const $types = gql`
     extend type  Mutation {
         likeMessage( target:ID! ):ID! @auth
         likeJournalLog( target:ID! ):ID! @auth
+        likeForumMessage( target:ID! ):ID! @auth
+        dislikeForumMessage( target:ID! ):ID! @auth
         follow(uid:ID!, not:Boolean):Boolean @auth @UserMustAllow
     }
 `;

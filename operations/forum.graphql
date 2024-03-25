@@ -1,0 +1,74 @@
+query GetForumMessages($sectionId: ID, $olderThan:UTCDate, $limit: Int) {
+  getForumMessages(sectionId: $sectionId, olderThan:$olderThan, limit: $limit) {
+    messages {
+      id
+      message
+      note
+      parentId
+      sectionId
+      threadId
+      user
+      when
+      replies
+    }
+    users {
+      ...BriefUserFields
+    } 
+  } 
+}
+
+query GetThreadMessages($messageId: ID, $offset:Int, $limit: Int) {
+  getThreadMessages(messageId: $messageId, offset:$offset, limit: $limit) {
+    messages {
+      id
+      message
+      note
+      parentId
+      sectionId
+      user
+      when
+      likes
+      dislikes
+      replies
+    }
+    users {
+      ...BriefUserFields
+    }
+  } 
+}
+
+query GetForumSections 
+{
+  getForumSections {
+    description
+    id
+    name
+    slug
+    threads
+    replies
+  }
+}
+
+query GetForumPostIndex( $postId:ID!) {
+    getForumPostIndex(postId:$postId)
+}
+
+mutation PostForumMessage($sectionId:ID!, $parentId:ID, $message:String!) {
+  postForumMessage(sectionId:$sectionId, parentId:$parentId, message:$message) 
+}
+
+mutation DeleteForumMessage($id: ID!, $why:String) {
+  deleteForumMessage( id:$id, why:$why ) 
+}
+
+query GetForumRolesDescription {
+    getForumRolesDescription {
+        key 
+        title 
+        description 
+    }
+}
+
+mutation SetForumMessageNote($messageId:ID!, $note:String!) {
+    setForumPostNote( messageId:$messageId, note:$note )
+}

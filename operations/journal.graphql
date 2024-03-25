@@ -28,7 +28,13 @@ query GetUserInfo($userInfoUname: String!) {
     user {
       ...UserFields
     }
-    daysLogged
+    daysLogged 
+    forum { 
+        posts 
+        role {
+            title
+        }
+    }
     best3 {
       w 
       e {
@@ -38,6 +44,12 @@ query GetUserInfo($userInfoUname: String!) {
       }
     } 
   }
+}
+
+query GetUserBasicInfo( $of:ID, $ofThese:[ID!] ) {
+    userBasicInfo(of:$of, ofThese:$ofThese ) {
+        ...BriefUserFields
+    }
 }
 
 query GetCalendarDays($uid: ID!, $from: YYYYMMDD!, $to: YYYYMMDD!) {

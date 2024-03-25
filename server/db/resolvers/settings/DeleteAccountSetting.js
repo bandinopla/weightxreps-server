@@ -82,6 +82,11 @@ export class DeleteAccountSetting extends BaseSetting {
         //
         await query( `UPDATE messages SET message="" WHERE uid=?`, [userInfo.id] );
 
+        //
+        // forum messages
+        //
+        await query( `UPDATE forum SET post_comment="" WHERE uid=?`, [userInfo.id] );
+
         /**
          * en inbox, si no se encuentra el "journal" en el left join pero hay logid, asumir que el journal se borro, no devolver esos items!
          */

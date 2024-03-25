@@ -18,7 +18,7 @@ import Achievements from "./Achievements.js";
 import Videos from "./Videos.js";
 import TWITTER_SCHEMA from "./Twitter.js";
 import TAGS from "./tags.js";
-
+import FORUM from "./forum.js";
 
 const baseTypeDefs = gql`
 
@@ -52,6 +52,8 @@ const baseTypeDefs = gql`
     est1RMFactor:Int    # el factor que usa ( custom | defaultFactor )
     jranges:[Int] # si puede meter mas zoom
     estimate1RMFormula:String  #formula para hacerle eval(estimate1RMFormula)
+
+    forumRole:String # a string label to be used in a chip to show the role of this user in the forums.
 
     socialLinks:[String] #Array de strings a urls de sus social sites...
   }
@@ -102,6 +104,7 @@ const schema = makeExecutableSchema({
             , Videos
             , TWITTER_SCHEMA
             , TAGS
+            , FORUM
             //, TestSubscription
           ]
 

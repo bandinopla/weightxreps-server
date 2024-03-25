@@ -3,6 +3,7 @@ import { dateASYMD, ymd2date } from "../../utils/dateASYMD.js";
 import { lb2kg } from "../../utils/lb2kg.js";
 import { query, transaction } from "../connection.js";
 import { __recalculateExerciseStats } from "./exercises.js"; 
+import { LIKE_TYPES } from "./likes-and-follows.js";
 import { addEditorUtags, createNewTagsIfAny, deleteUnusedUTags, deleteUTagsFromLog, getUTagId, getUTags, preventDuplicatedUTagsOnSave, utagTokenToText } from "./tags.js";
 import * as emoji from 'node-emoji'
 
@@ -655,9 +656,9 @@ const __deleteLog = async (transaction, logid) => {
         await transaction.query(`DELETE FROM message_to WHERE msgid IN ?`,[msgids]); 
 
         // Likes en LOG
-        await transaction.query(`DELETE FROM likes_history WHERE type_id=1 AND source_id=?`,[ logid ]);
+        await transaction.query(`DELETE FROM likes_history WHERE type_id=${ LIKE_TYPES.LOG } AND source_id=?`,[ logid ]);
 
         // Likes a mensajes posteados dentro de ese log...
-        await transaction.query(`DELETE FROM likes_history WHERE type_id=3 AND source_id IN ?`,[ msgids ]);
+        await transaction.query(`DELETE FROM likes_history WHERE type_id=${ LIKE_TYPES.MESSAGE } AND source_id IN ?`,[ msgids ]);
     } 
 }
