@@ -1,6 +1,7 @@
 import { query } from "../../connection.js";
 import { SECTIONS, getForumSections } from "./data.js";
 import { resolveForumPointers } from "./helpers.js";
+import {slugify} from "../../../utils/slugify.js";
 
 /**
  * Gets the notifications related to new replies in forum's threads or to comments done by the user.
