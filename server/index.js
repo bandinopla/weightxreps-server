@@ -84,7 +84,7 @@ async function startApolloServer( ) {
   }); 
 
 
-  app.get('/', (req, res) => { res.send('Hello World! '+app.get('env')) })  
+  app.get(baseUrl, (req, res) => { res.send('Hello World! (｡◕‿‿◕｡)' ) })  
  
   // Modified server startup
   const PORT = process.env.PORT || 4000;

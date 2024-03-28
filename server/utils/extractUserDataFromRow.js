@@ -1,3 +1,4 @@
+import { getForumRoleById } from "../db/resolvers/forum/data.js";
 import { getAvatarHash } from "./get-avatar-hash.js";
 
 
@@ -5,6 +6,22 @@ import { getAvatarHash } from "./get-avatar-hash.js";
 export default function extractUserDataFromRow( row ) {
     let today           = new Date();
  
+    if( row.deleted || row.uname.indexOf("[deleted]")>-1 )
+    {
+        return {
+            id: row.id,
+            avatarhash:"",
+            uname: "[deleted]",
+            cc:"xx",
+            slvl: 0,
+            sok: 0,
+            sleft:0,
+            private:false,
+            isf:row.isFemale,
+            joined: row.joined.toUTCString(),
+            usekg: row.usekg
+        }
+    }
 
     return {
         id: row.id
@@ -20,5 +37,6 @@ export default function extractUserDataFromRow( row ) {
         , isf: row.isFemale
         , joined: row.joined.toUTCString()
         , usekg: row.usekg
+        , forumRole : getForumRoleById( row.forumRole )?.key
     }
 }

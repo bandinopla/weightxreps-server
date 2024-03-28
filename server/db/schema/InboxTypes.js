@@ -17,6 +17,12 @@ const IMessageRef     = `${IHasMessageID}
                          inResponseTo:ID
                          inResponseToMsg:ID`;
 
+const IForumFields = `
+forumSlug:String!
+threadId:ID!
+threadSlug:String!
+`;
+
 const IToFields        = "to:ID!";
 
 const $types = gql`
@@ -30,6 +36,10 @@ const $types = gql`
 
   interface IBy {
     ${IByFields}
+  }
+
+  interface IForum {
+    ${IForumFields}
   }
 
 
@@ -114,8 +124,30 @@ const $types = gql`
     ${IHasTextFields}
   } 
 
+  type ForumNotification implements INotification & IBy & ITO & IHasJOwner & IHasText & IForum {  
+    isMention:Boolean
+    postId:ID!
+    ${INotificationFields}
+    ${IByFields}
+    ${IToFields}
+    ${IHasJOwner}
+    ${IHasTextFields}
+    ${IForumFields}
+  }
 
-  union Notification = DM | JComment | LikeOnLog | LikeOnJComment | LikeOnDM | StartedFollowing | SystemNotification
+  type ForumLike implements INotification & IBy & ITO & IHasJOwner & IHasText & IForum {
+    dislike:Boolean  
+    postId:ID!
+
+    ${INotificationFields}
+    ${IByFields}
+    ${IToFields}
+    ${IHasJOwner}
+    ${IHasTextFields}
+    ${IForumFields}
+  }
+
+  union Notification = DM | JComment | LikeOnLog | LikeOnJComment | LikeOnDM | StartedFollowing | SystemNotification | ForumNotification | ForumLike
  
 
 

@@ -37,6 +37,14 @@ mutation LikeJournalLog($target:ID!) {
     likeJournalLog( target:$target )
 }
 
+mutation LikeForumMessage($target:ID!) {
+    likeForumMessage( target:$target )
+}
+
+mutation DislikeForumMessage($target:ID!) {
+    dislikeForumMessage( target:$target )
+}
+
 mutation Follow($uid: ID!, $not: Boolean) {
   follow(uid: $uid, not: $not)
 }

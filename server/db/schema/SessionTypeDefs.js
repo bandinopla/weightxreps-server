@@ -4,6 +4,7 @@ const $types = gql`
   type SessionInfo {
     user:User! 
     time:String
+    forum:ForumStatus
   }  
 
   extend type Query {

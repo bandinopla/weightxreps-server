@@ -15,6 +15,7 @@ const $types = gql`
     user:User!
     daysLogged:Int! 
     best3:[BestLift!] 
+    forum:ForumStatus
   }
 
  #------------------------------------------------------------ 
@@ -178,6 +179,7 @@ const $types = gql`
 
   extend type Query {  
     userInfo( uname:String! ):UserInfo! @UserMustAllow 
+    userBasicInfo( of:ID, ofThese:[ID!] ):[User!]
     getCalendarDays( uid:ID!, from:YYYYMMDD!, to:YYYYMMDD! ):[CalendarDayKey] @UserMustAllow 
     jday(uid:ID!, ymd:YMD):JLog @UserMustAllow 
     jrange(uid:ID!, ymd:YMD!, range:Int!):JRangeData @UserMustAllow 

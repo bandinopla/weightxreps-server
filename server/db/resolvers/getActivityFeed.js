@@ -79,6 +79,7 @@ const getActivityFeed = async ( parent, args, context ) => {
                                     A.bday,
                                     A.bw,
                                     A.last_log,
+                                    A.forumRole,
                                     B.log,
                                     B.id AS logid
 
@@ -201,6 +202,7 @@ const getActivityFeed = async ( parent, args, context ) => {
                     let eblocksIDs = [];
                     let media; //URL a una imagen onda thumbnail representativa del primer link a un video found en log text...
                     let utagValuesIDs = []; //<---- tags that the preview text of the log contains.
+                    let user = extractUserDataFromRow(row);
 
                     if( row.private )
                     {
@@ -214,15 +216,14 @@ const getActivityFeed = async ( parent, args, context ) => {
                                 , private   : row.private
                                 , isf       : -1
                                 , joined    : row.joined.toUTCString()
+                                , forumRole : user.forumRole
                             }
                             , when          : row.last_log && row.last_log.toUTCString()
                         }
                     }
 
                     return { 
-                        user: {
-                            ...extractUserDataFromRow(row)
-                        }
+                        user
                         , posted    : row.ymd && dateASYMD( row.ymd, true )
                         , when      : row.last_log && row.last_log.toUTCString() //Date.UTC(2021, 6, 15, 17, 0, 0),
                         , text      : row.log && parsePreviewText( row.log, row.logid, eblocksIDs, foundMedia=>media=foundMedia, tagid=>utagValuesIDs.push(tagid) )

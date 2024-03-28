@@ -9,7 +9,7 @@ import { sendWelcomeMessage } from "./inbox.js";
 import { LoginWithGoogle } from "./session-login-google.js";
 import { LoginWithFirebase } from "./session-login-firebase.js";
 import { getInvalidUsernameError } from "../../utils/getInvalidUsernameError.js";
-
+import { getForumRoleById} from "./forum/data.js";
 
 const getSession = async (parent, args, context) => {
 
@@ -20,7 +20,10 @@ const getSession = async (parent, args, context) => {
 
         let user = await query("SELECT * FROM users WHERE id=?", [SID]);
         return {
-            user: extractUserDataFromRow( user[0] )
+            user: extractUserDataFromRow( user[0] ),
+            forum: {
+                role: getForumRoleById( user[0].forumRole )?.toJs()
+            },
         }
     }
 
@@ -88,7 +91,7 @@ export const createSessionContext = req => {
         if( process.env.NODE_ENV === 'development' )
         {
             //TODO fake session id
-            //sessionData = { id:1, uname:"...",usekg:1 };
+            sessionData = { id:1, uname:"...",usekg:1 };
         }
         
     } 
