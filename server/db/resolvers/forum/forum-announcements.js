@@ -44,9 +44,9 @@ export async function getAnnouncementsCount() {
     return total?.[0].totalCount ?? 0;
 }
 
-export async function getAnnouncementsThreadMessages ( args, limit, pushThreadHere ) 
+export async function getAnnouncementsThreadMessages ( forumThreadRow, limit, pushThreadHere ) 
 {
-    const globalId  = args.messageId.replace("global:", "");
+    const globalId  = forumThreadRow.post_comment.replace("global:", "");
     const global    = await query(`SELECT * FROM messages WHERE id=?`, [ globalId ]);
 
     if(!global.length) 

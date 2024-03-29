@@ -164,8 +164,10 @@ export const ForumResolver = {
 
             if( sectionHook )
             {
+                let threadRow = thread[0];
+
                 thread      = [];
-                messages    = await sectionHook.getThreadMessages()( args, limit, thread );
+                messages    = await sectionHook.getThreadMessages()( threadRow, limit, thread );
             }
             else 
             {
