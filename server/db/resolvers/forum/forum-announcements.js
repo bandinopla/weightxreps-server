@@ -44,9 +44,9 @@ export async function getAnnouncementsCount() {
     return total?.[0].totalCount ?? 0;
 }
 
-export async function getAnnouncementsThreadMessages ( forumThreadRow, limit, pushThreadHere ) 
+export async function getAnnouncementsThreadMessages ( args, limit, pushThreadHere, $pointerId ) 
 {
-    const globalId  = forumThreadRow.post_comment.replace("global:", "");
+    const globalId  = $pointerId.replace("global:", "");
     const global    = await query(`SELECT * FROM messages WHERE id=?`, [ globalId ]);
 
     if(!global.length) 
@@ -65,11 +65,11 @@ export async function getAnnouncementsThreadMessages ( forumThreadRow, limit, pu
         post_preview:"" 
     } 
 
-    const proxy = await query(`SELECT * FROM forum WHERE post_comment=?`, [ args.messageId ]);
+    const proxy = await query(`SELECT * FROM forum WHERE post_comment=?`, [ $pointerId ]);
 
     if(!proxy.length) 
     { 
-        const created = await query( `INSERT INTO forum SET ?`, { ...thread, post_comment: args.messageId } );
+        const created = await query( `INSERT INTO forum SET ?`, { ...thread, post_comment: $pointerId } );
 
         if(!created.insertId )
         {

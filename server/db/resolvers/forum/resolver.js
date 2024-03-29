@@ -159,15 +159,20 @@ export const ForumResolver = {
             let messages        ;
 
             let thread          = await query(`SELECT * FROM forum WHERE id=?`, [ args.messageId ]);
+            let idForSection    ;
+            let sectionHook     = SECTIONS.find( s=> { 
+                idForSection = s.idIsMine? 
+                                s.idIsMine(args.messageId) ? args.messageId : 
+                                        s.idIsMine(thread[0]?.post_comment) ? thread[0]?.post_comment : null 
+                          : null; 
 
-            let sectionHook     = SECTIONS.find( s=> s.idIsMine && (s.idIsMine(args.messageId) || s.idIsMine(thread[0]?.post_comment)) );
+                return idForSection? s : null; 
+            });
 
             if( sectionHook )
             {
-                let threadRow = thread[0];
-
                 thread      = [];
-                messages    = await sectionHook.getThreadMessages()( threadRow, limit, thread );
+                messages    = await sectionHook.getThreadMessages()( args, limit, thread, idForSection );
             }
             else 
             {
