@@ -674,7 +674,7 @@ export const InboxResolvers = {
                                             # not in DM mode...
                                             #
                                             (A.type_id=${JOURNAL_LIKE_TYPE} 
-                                            OR A.type_id=${LIKE_TO_MESSAGE_TYPE} 
+                                            OR (A.type_id=${LIKE_TO_MESSAGE_TYPE} AND B.logid>0) #<-- only likes to comments on journal
                                             OR A.type_id=${LIKE_TYPES.FORUM_MESSAGE_LIKE} 
                                             OR A.type_id=${LIKE_TYPES.FORUM_MESSAGE_DISLIKE})` } 
         
