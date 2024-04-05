@@ -10,6 +10,7 @@ import { escapeHTML } from "../../../utils/escapeHTML.js";
 import {packAsToken} from "../../../utils/token.js"; 
 import extractUserDataFromRow from "../../../utils/extractUserDataFromRow.js";
 import { COOLDOWN_SECONDS_BEFORE_REPOSTING, SECTIONS, FORUM_ROLES, getForumSections as getSections, getForumRoleById , FORUM_ROLE_ACTION } from "./data.js"
+import { resolveForumPointers } from "./helpers.js";
 
 /**------------------------------------
  * 
@@ -106,7 +107,7 @@ export const ForumResolver = {
             //#endregion
  
             sql             += ` AND ${ args.olderThan? `fecha_de_publicacion<?` : '1=1' }  
-                                 ORDER BY id DESC LIMIT ${limit}`;
+                                 ORDER BY fecha_de_publicacion DESC LIMIT ${limit}`;
 
             let msgs;               
 
@@ -132,6 +133,9 @@ export const ForumResolver = {
 
                 users = urows.map( user=>extractUserDataFromRow(user) )
             }
+
+            // resolve "pointers" to text in other places....
+            await resolveForumPointers(msgs,["post_comment"]);
 
             return {
                 messages: msgs.map( mrow=>({
