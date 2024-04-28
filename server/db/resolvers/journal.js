@@ -470,7 +470,7 @@ export const JournalResolver = {
                     e.best.eff      = eff; // <-- puede ser null...
                     e.best.int      = int;  
 
-                    e.best.prsWxDorT = PRsOfEID.prsWxDorT.getBestStats(); 
+                    e.best.prsWxDorT = PRsOfEID.prsWxDorT?.getBestStats(); 
                 }
 
                 //
