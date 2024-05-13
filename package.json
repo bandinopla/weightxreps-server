@@ -27,7 +27,7 @@
     "apollo-server-plugin-response-cache": "^3.1.1",
     "compression": "^1.7.4",
     "csv-parser": "^3.0.0",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.4.5",
     "esm-cjs": "^0.1.2",
     "express": "^4.17.1",
     "firebase-admin": "^10.0.2",
