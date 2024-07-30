@@ -69,6 +69,7 @@ scalar SBDSlot
 type SBDStat {
     wclass:WeightClass!
     graph:[SBDSlot!]
+    graphAge:[SBDSlot]
 }
 
 type SBDStats {
