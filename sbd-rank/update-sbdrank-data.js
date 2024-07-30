@@ -29,10 +29,11 @@
   *      date: //date string,
   *      perclass: [
   *           
-  *              {"wclass":{"min":0,"max":59,"name":"59 kg","male":true}, graph:[ [S,B,D],... ] }
+  *              {"wclass":{"min":0,"max":59,"name":"59 kg","male":true}, graph:[ [S,B,D],... ], graphAge:[ [ SquatAgesCounter, BenchAgesCounter, DeadliftAgesCounter ],... ] }
   *              // graph: por cada slot en ese array se asume el peso es (i*5) kg y el valor es el numero de gente que levanto ese peso.
   *           
-  *      ] 
+  *      ] ,
+  *     ageClasses
   * 
   * }
   */
@@ -55,6 +56,7 @@
          47,52,57,63,69,76,84,84
      ]
  ]
+ const $ageClasses      = []; // !Not sorted!, as they come. Will be filled from data in the cv. Strings representing each age class. Example: "50-54"
  var total = 0;
  const outMales       = [];
  const outFemales     = [];
@@ -71,7 +73,8 @@
              name    : w+(w==wClasses[i-1]?"+":"")+ " kg",
              male    : isMale
          },
-         graph       : (new Array(500/5)).fill(0).map(v=>[0,0,0])
+         graph       : (new Array(500/5)).fill(0).map(v=>[0,0,0]),
+         graphAge    : (new Array(500/5)).fill(0).map(v=>[[],[],[]]), // here i will put, per age segment, the count of how many lifts that age bracket did.
      }) );
  
      Array.prototype.push.apply( (i==0? outMales : outFemales),out);
@@ -116,7 +119,14 @@
  
  }
   
-
+ /**
+  * stores the ageClass in the global $ageClasses and returns the index of it in that array.
+  */
+ const __setAgeClass = ageClass => {
+    if (!ageClass) return -1;
+    let i = $ageClasses.indexOf(ageClass);
+    return i >= 0 ? i : $ageClasses.push(ageClass) - 1;
+}
 
  console.log("Downloading latest json from openpowerlifting...");
  request.get(url)
@@ -140,7 +150,8 @@
  
                 var base = {
                     isf: row.Sex=='F'? 1 : 0,
-                    bw: Number(row.BodyweightKg)
+                    bw: Number(row.BodyweightKg),
+                    ageClass: __setAgeClass(row.AgeClass)
                 };
             
                 __addLift( rows, 0, base, "Squat", row );
@@ -164,13 +175,29 @@
                     const wClasses      = wClass[ row.isf ];
                     const classIndex    = wClasses.findIndex( (v,i)=>(i==0 || row.bw>wClasses[i-1]) && ( v==wClasses[i-1] || row.bw<=v) );
                     const w             = Math.floor(row.kg / 5);
+                    const out           = (row.isf? outFemales: outMales)[ classIndex ];
               
-                    (row.isf? outFemales: outMales)[ classIndex ].graph[w][ row.sbd ]++; 
+                    out.graph[w][ row.sbd ]++; 
+
+//#region per age count
+                    if( row.ageClass>-1 )
+                    {
+                        let perAge = out.graphAge[w][ row.sbd ] ;
+
+                        if(! perAge.length )
+                        {
+                            let counterPerAgeClass = new Array($ageClasses.length).fill(0);
+                            perAge.push( ...counterPerAgeClass ); 
+                        }
+
+                        perAge[row.ageClass]++; 
+                    } 
+//#endregion
             
                 } );
             
                 console.log("Saving to file JSON...")
-                fs.writeFileSync(JSON_DESTINY, "export const sbdstats = " + JSON.stringify({ total, date:new Date(), perclass:[ ...outMales,...outFemales ] }) );
+                fs.writeFileSync(JSON_DESTINY, "export const sbdstats = " + JSON.stringify({ total, date:new Date(), perclass:[ ...outMales,...outFemales ], ageClasses:$ageClasses }) );
             
                 console.log("DONE! "+total+" lifts. saved "+JSON_DESTINY+"."); 
             
