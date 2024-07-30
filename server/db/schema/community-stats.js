@@ -76,6 +76,7 @@ type SBDStats {
     total:Int! #total de lifts...
     date:String!
     perclass:[SBDStat]
+    ageClasses:[String]
 }
 
 extend type Query {  

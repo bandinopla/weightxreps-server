@@ -22,6 +22,7 @@ query GetSBDStats {
             graph
             graphAge
         }
+        ageClasses
   }
 }
 
