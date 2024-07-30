@@ -2,9 +2,12 @@ import Twit from "twit";
 import config from "../../../config.js";
 
 
-const T = new Twit( JSON.parse(config.twitterConfig) ); 
 
-export const getTweetById = async id => await T.get(`statuses/show/${id}`);
+
+export const getTweetById = async id => {
+    const T = new Twit( JSON.parse(config.twitterConfig) ); 
+    await T.get(`statuses/show/${id}`);
+}
 
 
 export class TweetChallenge {

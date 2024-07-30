@@ -11,7 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\server\\index.js"
+            "program": "${workspaceFolder}/server/index.js"
             ,"env": {
                 "NODE_ENV": "development"
                 
@@ -25,7 +25,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\server\\index.js"
+            "program": "${workspaceFolder}/server/index.js"
             ,"env": {
                 "NODE_ENV": "production"
             }

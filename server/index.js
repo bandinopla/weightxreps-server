@@ -9,6 +9,8 @@ import { StartCronJobs } from "./cron-jobs.js";
 import { createSessionContext } from './db/resolvers/session.js';
 import WXRSchema from "./db/schema/WXRSchema.js";
  
+const isCodespace = process.env.CODESPACES === 'true';
+ 
 
 async function startApolloServer( ) {
   
@@ -97,4 +99,10 @@ async function startApolloServer( ) {
 
 
 startApolloServer(); 
-StartCronJobs();
+
+if(!isCodespace)
+{
+  StartCronJobs();
+}
+
+  
