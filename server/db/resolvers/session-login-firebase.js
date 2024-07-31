@@ -1,4 +1,4 @@
-//import { initializeApp, cert } from 'firebase-admin/app';
+import { initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from "firebase-admin/auth";
 import { query } from "../connection.js";
 import { packAsToken } from "../../utils/token.js";
@@ -7,15 +7,15 @@ import { sendWelcomeMessage } from "./inbox.js";
 import md5 from 'md5';
 
 
-//import key from "../../firebase-adminsdk-credential.js";
+import key from "../../firebase-adminsdk-credential.js";
 import { getInvalidUsernameError } from '../../utils/getInvalidUsernameError.js';
 
 
   
 
-// const APP = initializeApp({
-//     credential: cert(key)
-// });
+const APP = initializeApp({
+    credential: cert(key)
+});
 
 
 
