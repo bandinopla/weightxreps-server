@@ -18,11 +18,11 @@ export const rpePercentLeftJoin = (alias, rep, rpe)=>{
             #
             # LEFT JOIN ( SELECT percent AS rpePercent, rep, rpe FROM rpe ) AS ${alias} ON RPE.rep=${rep} AND RPE.rpe=${rpe}
             LEFT JOIN (
-                SELECT percent AS rpePercent, rep, rpe FROM (SELECT rep, rpe, percent FROM rpe_override
+                SELECT percent AS rpePercent, rep, rpe AS _rpe FROM (SELECT rep, rpe, percent FROM rpe_override
                                 UNION 
-                              SELECT rep, rpe, percent FROM rpe ) B 
+                              SELECT rep, rpe AS _rpe, percent FROM rpe ) B 
                 GROUP BY rep, rpe
             ) 
-            AS ${alias} ON RPE.rep=${rep} AND RPE.rpe=${rpe} 
+            AS ${alias} ON RPE.rep=${rep} AND RPE._rpe=${rpe} 
             `
 }
