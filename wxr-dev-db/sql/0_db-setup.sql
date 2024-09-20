@@ -57,11 +57,11 @@ CREATE TABLE IF NOT EXISTS `erows` (
     INDEX `logid`(`logid`, `uid`),
     INDEX `uid`(`uid`),
 
-    INDEX `idx_erows_uid_eid_logid` (`uid`, `eid`, `logid`); 
-    INDEX `idx_erows_wkg`(`wkg`); 
-    INDEX `idx_erows_reps` (`reps`); 
-    INDEX `idx_erows_wkg_reps` (`wkg`, `reps`); 
-    INDEX `idx_erows_just_logid` (`logid`);
+    INDEX `idx_erows_uid_eid_logid` (`uid`, `eid`, `logid`), 
+    INDEX `idx_erows_wkg`(`wkg`), 
+    INDEX `idx_erows_reps` (`reps`), 
+    INDEX `idx_erows_wkg_reps` (`wkg`, `reps`), 
+    INDEX `idx_erows_just_logid` (`logid`),
 
 
     PRIMARY KEY (`id`)
@@ -137,9 +137,9 @@ CREATE TABLE IF NOT EXISTS `logs` (
     INDEX `fromMobile`(`fromMobile`),
     INDEX `uid`(`uid`, `ultima_modificacion`),
 
-    INDEX `idx_logs_uid_fecha_del_log` (`uid`, `fecha_del_log`);
-    INDEX `idx_logs_justuid` (`uid`);
-    INDEX `idx_logs_justbw` (`bw`);
+    INDEX `idx_logs_uid_fecha_del_log` (`uid`, `fecha_del_log`),
+    INDEX `idx_logs_justuid` (`uid`),
+    INDEX `idx_logs_justbw` (`bw`),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     INDEX `last_log`(`last_log`),
     INDEX `supporterLevel`(`supporterLevel`),
     INDEX `uname`(`uname`), 
-    INDEX `idx_users_private_and_deleted` (`private`, `deleted`);
+    INDEX `idx_users_private_and_deleted` (`private`, `deleted`),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -467,4 +467,3 @@ INSERT INTO `rpe` (`id`, `rep`, `rpe`, `percent`) VALUES
 (106, 12, 8.5, 0.64),
 (107, 12, 7.5, 0.613),
 (108, 12, 6.5, 0.586);
- 
