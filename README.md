@@ -1,4 +1,4 @@
-![Logo](https://weightxreps.net/logo.png)
+![Logo](https://github.com/bandinopla/weightxreps-client/raw/main/public/session-banner.jpg)
 
 # Welcome
 I am thrilled to announce that I am releasing my [backend code](https://github.com/bandinopla/weightxreps-server) and [frontend code](https://github.com/bandinopla/weightxreps-client) to the community as open source. This has been a long-time goal of mine and I am excited to see the impact it will have. 
@@ -19,28 +19,18 @@ The Front-End comunicates with this server vía [GraphQL](https://graphql.org/) 
 
 ---
 
-## :newspaper: Run a local dev database
-The serves uses a [MySQL database](https://www.mysql.com/). To setup a development database on your machine use [docker-compose](https://docs.docker.com/get-started/08_using_compose/). The docker compose related files are in `wxr-dev-db` folder. Note: it will be empty...
-```bash
-cd wxr-dev-db
-docker-compose up
-```
+## :newspaper: Run dev environment
+To setup a development database on your machine use [docker](https://www.docker.com/). VS Code should detect the `.devcontainer` folder automatically. A notification will pop up, asking if you want to "Reopen in Container." Click on that option.
 
-#### :seedling: Seeding the database
-To fill this new "empty" database with dummy data, run this command:
-```bash
-npm run reset-db
-```
-Everytime you run that script, the _database will be truncated_, all data will be deleted and new dummy data will be created.
-
-The database connection settings live in the `.env` file. Make sure they match your dev database settings. Read the `docker-compose.yml` to see which username, password and database name are used in dev mode...
+If you don’t see the notification, you can manually start the container by:
+- Going to the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on macOS).
+- Typing and selecting "`Dev Containers: Reopen in Container`".
 
 ---
 
-## :coffee: Run local dev server
-To start playing with the code you will need [NodeJS](https://nodejs.org/en/) and keep in mind that the server in which the site is currently hosted works with Node Version 14.20.1 so if you plan to add some new feature make sure it is in range on the features provided up to that point or else the code wont run.
+## :coffee: Run local dev server 
 
-> in VS Code you can go to "Run > run Dev" or "Run > Production" _it will only serve to set the NODE_ENV environment variable to development or production_
+In VS Code you can go to "Run > run Dev" or "Run > Production" _it will only serve to set the NODE_ENV environment variable to development or production_
 
 or vía NPM ( you will need to install [NodeMon](https://nodemon.io/) )
 ``` 
@@ -51,7 +41,7 @@ The code will load the `.env` file to configure itself.
 
 The code lives in the `./server` folder. The code that handles the GraphQL shema is is `./server/db/resolvers`
 
-> If you are developing both backend and front end, clone both repos into a folder and name each folder `client` and `server`. This is required because the sever [generates code](https://the-guild.dev/graphql/codegen) when you make changes in the graphql schema and run `npm run exportschema` and goes one level up and expect a client folder to exist... these files will be dynamically created:
+> If you are developing both backend and front end, clone both repos into a folder and name each folder `client` and `server`. This is required because the server [generates code](https://the-guild.dev/graphql/codegen) when you make changes in the graphql schema and run `npm run exportschema` and goes one level up and expect a client folder to exist... these files will be dynamically created:
     - `generated---db-introspection.json`
     - `generated---db-types-and-hooks.tsx`
 
@@ -59,7 +49,6 @@ The code lives in the `./server` folder. The code that handles the GraphQL shema
 
 - `firebase-adminsdk-credentials.js`
 you will need to create & place this file inside of `server` with a [firebase account](https://console.firebase.google.com/).  
-- `.env` place this at the root of this proyect. This file should contain the info to connect to the database in your dev environment. Use `.env.example` as base.
 
 ---
 
