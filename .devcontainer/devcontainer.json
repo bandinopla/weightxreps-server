@@ -20,5 +20,16 @@
     },
     "forwardPorts": [
         8082, 3000, 3306
-      ]
+    ],
+    "portsAttributes": {
+        "3000": {
+            "label": "Node Server"
+        },
+        "8082": {
+            "label": "PhPMyAdmin (DB Admin)"
+        },
+        "3306": {
+            "label": "MySQL server"
+        }
+    }
 }
