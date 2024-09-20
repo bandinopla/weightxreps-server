@@ -19,6 +19,7 @@ async function startApolloServer( ) {
   const server  = new ApolloServer({ /*typeDefs, resolvers*/
      
     schema: WXRSchema
+    , introspection: process.env.NODE_ENV !== 'production'
     
     , context: ({ req })=>{  
         return {
@@ -29,7 +30,7 @@ async function startApolloServer( ) {
     , plugins:[ 
           //process.env.NODE_ENV === 'production'? ApolloServerPluginLandingPageDisabled() : ApolloServerPluginLandingPageLocalDefault({ footer: false }) ,
           //ApolloServerPluginLandingPageGraphQLPlayground(),
-          ApolloServerPluginLandingPageLocalDefault({ footer: false }),
+          //ApolloServerPluginLandingPageLocalDefault({ footer: false }),
 
           //
           // el sessionId es un identificador del usuario unico.
@@ -86,7 +87,37 @@ async function startApolloServer( ) {
   }); 
 
 
-  app.get(baseUrl, (req, res) => { res.send('Hello World! (｡◕‿‿◕｡)' ) })  
+  app.get(baseUrl, (req, res) => { res.send(`<div style="
+  font-family: 'Courier New', monospace;
+  background-color: #000;
+  color: #0f0;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+  display: inline-block;
+  white-space: nowrap;
+">
+  <div style="margin-bottom: 10px;">
+    C:\&gt; Weight For Reps Server! (｡◕‿‿◕｡)
+  </div>
+  <div>
+    Source code: <a href="https://github.com/bandinopla/weightxreps-server">Click here</a>
+  </div>
+  <div style="
+    display: inline-block;
+    width: 10px;
+    height: 20px;
+    background-color: #0f0;
+    animation: blink 1s step-end infinite;
+  "></div>
+</div>
+
+<style>
+  @keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+</style>` ) })  
  
   // Modified server startup
   const PORT = process.env.PORT || 4000;
