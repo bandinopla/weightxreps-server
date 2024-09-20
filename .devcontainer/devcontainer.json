@@ -13,7 +13,8 @@
         "vscode": {
             "extensions": [
                 "ms-azuretools.vscode-docker",
-                "irongeek.vscode-env"
+                "irongeek.vscode-env",
+                "mquandalle.graphql"
             ]
         }
     },
