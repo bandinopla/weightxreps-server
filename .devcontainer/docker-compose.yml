@@ -1,38 +1,55 @@
-version: "3.8"
+version: '3.1'
 
-services: # adds 2 services: mysql and phpmyadmin to connect with
-  db:
-    image: mysql:latest # use latest version of mysql
-    container_name: weightxreps-dev-db # add a name for the container  
-    environment: # add default values, see docs for more info.
-      MYSQL_USER: user
-      MYSQL_ROOT_PASSWORD: mypassword
-      MYSQL_PASSWORD: mypassword
-      MYSQL_DATABASE: testdb # create this database on startup
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:0-14
     volumes:
-      - weightxreps-dev-db:/var/lib/mysql 
-      - ./sql:/docker-entrypoint-initdb.d
-      - ./import:/db-import
+      - ..:/workspace:cached
+    command: "tail -f /dev/null"
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    networks:
+      - mynet
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.6.19 # the version used in the server...
+    container_name: weightxreps-dev-db # add a name for the container  
+    restart: always
+    environment: # add default values, see docs for more info 
+      MYSQL_ROOT_PASSWORD: mypassword 
+      MYSQL_DATABASE: testdb # create this database on startup
     command: 
-      - --default-authentication-plugin=mysql_native_password 
       - --character-set-server=utf8mb4 
       - --collation-server=utf8mb4_unicode_ci 
       - --init-connect='SET NAMES UTF8;' 
       - --innodb-flush-log-at-trx-commit=0
       - --sql_mode=
+    volumes:
+      - weightxreps-dev-db:/var/lib/mysql 
+      - ../wxr-dev-db/sql:/docker-entrypoint-initdb.d 
     ports:
       - '3306:3306'
-  
+    networks:
+      - mynet
+
   phpmyadmin:
     container_name: weightxreps-dev-db-admin
     image: phpmyadmin/phpmyadmin:latest
     ports:
      - "8082:80"
-    environment:
-      MYSQL_ROOT_PASSWORD: mypassword #(Required) set the password for the root superuser account.
+    environment: 
       PMA_HOST: db   # define the address/hostname of the mysql server eg mysql container name.
       PMA_USER: root # this is the root user to login on startup
       PMA_PASSWORD: mypassword # use the root password to login on startup. 
+    networks:
+      - mynet
 
-volumes: # add persistent data even if container is removed.
+volumes: 
   weightxreps-dev-db:
+
+networks:
+  mynet:

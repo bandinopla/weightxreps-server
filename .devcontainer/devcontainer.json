@@ -1,0 +1,23 @@
+{
+    "name": "Node.js & MySQL/PhpMyAdmin", 
+    "dockerComposeFile": "docker-compose.yml",
+    "service":"app", 
+    "workspaceFolder": "/workspace", 
+    "postCreateCommand": "cp .env.example .env && npm install && node wxr-dev-db/fill-with-dummy-data.js",
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version":14
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "irongeek.vscode-env"
+            ]
+        }
+    },
+    "forwardPorts": [
+        8082, 3000, 3306
+      ]
+}

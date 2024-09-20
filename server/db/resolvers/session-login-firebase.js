@@ -7,15 +7,16 @@ import { sendWelcomeMessage } from "./inbox.js";
 import md5 from 'md5';
 
 
-import key from "../../firebase-adminsdk-credential.js";
 import { getInvalidUsernameError } from '../../utils/getInvalidUsernameError.js';
 
 
-  
-
-const APP = initializeApp({
-    credential: cert(key)
-});
+if( process.env.CODESPACES !=='true' )
+{
+    let key = await import("../../firebase-adminsdk-credential.js").default;
+    initializeApp({
+        credential: cert(key)
+    });
+}
 
 
 
