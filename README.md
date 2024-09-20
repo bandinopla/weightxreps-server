@@ -37,13 +37,13 @@ or vía NPM ( you will need to install [NodeMon](https://nodemon.io/) )
 npm run dev
 ```
 
-The code will load the `.env` file to configure itself.
+**GraphQl** > Then you can navigate to `/graphql` to access the graphql explorer & interact with the server as the front-end would do.
 
-The code lives in the `./server` folder. The code that handles the GraphQL shema is is `./server/db/resolvers`
+The code lives in the `./server` folder. The code that handles the GraphQL is in `./server/db`
 
-> If you are developing both backend and front end, clone both repos into a folder and name each folder `client` and `server`. This is required because the server [generates code](https://the-guild.dev/graphql/codegen) when you make changes in the graphql schema and run `npm run exportschema` and goes one level up and expect a client folder to exist... these files will be dynamically created:
-    - `generated---db-introspection.json`
-    - `generated---db-types-and-hooks.tsx`
+> If you are developing both backend and front end (or make changes to the schema), clone both repos into a folder and name each folder `client` and `server`. This is required because the server [generates code](https://the-guild.dev/graphql/codegen) when you make changes in the graphql schema and run `npm run exportschema` and goes one level up and expect a client folder to exist... these files will be dynamically created **automatically**:
+- `generated---db-introspection.json`
+- `generated---db-types-and-hooks.tsx`
 
 #### :warning: Files you need !
 

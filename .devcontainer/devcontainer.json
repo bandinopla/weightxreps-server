@@ -19,10 +19,10 @@
         }
     },
     "forwardPorts": [
-        8082, 3000, 3306
+        8082, 4000, 3306
     ],
     "portsAttributes": {
-        "3000": {
+        "4000": {
             "label": "Node Server"
         },
         "8082": {

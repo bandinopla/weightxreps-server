@@ -7,7 +7,7 @@ services:
       - ..:/workspace:cached
     command: "tail -f /dev/null"
     ports:
-      - "3000:3000"
+      - "4000:4000"
     environment:
       NODE_ENV: development
     networks:
