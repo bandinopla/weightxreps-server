@@ -10,12 +10,12 @@
     "build-and-run": "npm run build && npm start",
     "exportschema": "graphql-codegen --config codegen.yml && cp ./move-to-frontend/*.* ../client/src/data",
     "update-sbd-rank": "node sbd-rank/update-sbdrank-data.js",
-    "reset-db": "node wxr-dev-db/fill-with-dummy-data.js"
+    "seed-db": "tsnd wxr-dev-db/fill-with-dummy-data.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/bandinopla/weightxreps-server.git"
-  }, 
+  },  
   "keywords": [],
   "author": "pablo@weightxreps.net",
   "license": "GPL-3.0",
