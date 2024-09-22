@@ -1,23 +1,17 @@
-import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
+//import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
 import { ApolloServer } from 'apollo-server-express';
 import responseCachePlugin from 'apollo-server-plugin-response-cache';
 
-//@ts-ignore
 import compression from "compression";
 import express from 'express';
 
-//@ts-ignore
 import graphqlUploadExpress from 'graphql-upload/public/graphqlUploadExpress.js';
 import $config from "./config.js";
 import { StartCronJobs } from "./cron-jobs.js";
 import { createSessionContext } from './db/resolvers/session.js';
 import WXRSchema from "./db/schema/WXRSchema.js";
-import { Test } from "./test";
-
-let pepe = 1234454534534;
 
 const isCodespace = process.env.CODESPACES === 'true';
-Test() 
 
 async function startApolloServer( ) {
   
@@ -105,7 +99,7 @@ async function startApolloServer( ) {
   white-space: nowrap;
 "> 
   <div style="margin-bottom: 10px;">
-    C:\&gt; Weight For Reps Server! ${Test()}  (｡◕‿‿◕｡)
+    C:\&gt; Weight For Reps Server!  (｡◕‿‿◕｡)
   </div>
   <div>
     Source code: <a href="https://github.com/bandinopla/weightxreps-server">Click here</a>
