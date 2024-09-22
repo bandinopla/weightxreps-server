@@ -1,15 +1,15 @@
 {
-    "extends":"@tsconfig/node14",
-    "compilerOptions": { 
-        "moduleResolution":"node10", 
-        "module":"CommonJS", 
-        "allowJs": true,   
+    "extends":"@tsconfig/node18",
+    "compilerOptions": {
+        "moduleResolution":"node",
+        "module":"CommonJS",
+        "allowJs": true,
         "removeComments": true,
-        "preserveConstEnums": true,  
+        "preserveConstEnums": true,
         "sourceMap": false,
         "outDir": "./server-to-upload",
         "noImplicitAny":false
-    }, 
+    },
     "include": ["server/**/*"],
     "exclude": ["node_modules" ]
 }
