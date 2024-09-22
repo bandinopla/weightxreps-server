@@ -10,14 +10,16 @@ import md5 from 'md5';
 import { getInvalidUsernameError } from '../../utils/getInvalidUsernameError.js';
 
 
-if( process.env.CODESPACES !=='true' )
-{
-    let key = await import("../../firebase-adminsdk-credential.js").default;
-    initializeApp({
-        credential: cert(key)
+if (process.env.CODESPACES !== 'true') {
+    import("../../firebase-adminsdk-credential.js").then(module => {
+        const key = module.default;
+        initializeApp({
+            credential: cert(key)
+        });
+    }).catch(err => {
+        console.error('Error loading Firebase credentials:', err);
     });
 }
-
 
 
 //npm install firebase-admin --save

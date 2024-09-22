@@ -1,16 +1,23 @@
 import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
 import { ApolloServer } from 'apollo-server-express';
 import responseCachePlugin from 'apollo-server-plugin-response-cache';
+
+//@ts-ignore
 import compression from "compression";
 import express from 'express';
+
+//@ts-ignore
 import graphqlUploadExpress from 'graphql-upload/public/graphqlUploadExpress.js';
 import $config from "./config.js";
 import { StartCronJobs } from "./cron-jobs.js";
 import { createSessionContext } from './db/resolvers/session.js';
 import WXRSchema from "./db/schema/WXRSchema.js";
- 
+import { Test } from "./test";
+
+let pepe = 1234454534534;
+
 const isCodespace = process.env.CODESPACES === 'true';
- 
+Test() 
 
 async function startApolloServer( ) {
   
@@ -35,10 +42,10 @@ async function startApolloServer( ) {
           //
           // el sessionId es un identificador del usuario unico.
           //
-          responseCachePlugin.default({
+          responseCachePlugin({
             sessionId: (requestContext) => {
                
-              return requestContext.request.http.headers.get('authorization') || null
+              return requestContext.request.http?.headers.get('authorization') || null
             }
           })
     ]
@@ -63,7 +70,7 @@ async function startApolloServer( ) {
   });
 
   // Required logic for integrating with Express
-  await server.start();
+  await server.start(); 
 
   const app         = express();
 
@@ -96,9 +103,9 @@ async function startApolloServer( ) {
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
   display: inline-block;
   white-space: nowrap;
-">
+"> 
   <div style="margin-bottom: 10px;">
-    C:\&gt; Weight For Reps Server! (｡◕‿‿◕｡)
+    C:\&gt; Weight For Reps Server! ${Test()}  (｡◕‿‿◕｡)
   </div>
   <div>
     Source code: <a href="https://github.com/bandinopla/weightxreps-server">Click here</a>
@@ -121,10 +128,11 @@ async function startApolloServer( ) {
  
   // Modified server startup
   const PORT = process.env.PORT || 4000;
+ 
+    await new Promise( resolve => app.listen(PORT, ()=>resolve(null)));
+ 
 
-  await new Promise( resolve => app.listen({ port: PORT }, resolve));
-
-  console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
+  console.log(`🚀 Server ready !at http://localhost:${PORT}${server.graphqlPath}`);
 }
 
 

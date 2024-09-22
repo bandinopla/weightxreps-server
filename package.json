@@ -4,13 +4,14 @@
   "description": "Server of weightxreps.net",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon ./server/index.js",
-    "pack": "node export-esm-to-cjs.cjs",
+    "dev": "tsnd --respawn --clear server/index.ts",
+    "build": "tsc",
+    "start": "node server-to-upload/index.js",
+    "build-and-run": "npm run build && npm start",
     "exportschema": "graphql-codegen --config codegen.yml && cp ./move-to-frontend/*.* ../client/src/data",
     "update-sbd-rank": "node sbd-rank/update-sbdrank-data.js",
     "reset-db": "node wxr-dev-db/fill-with-dummy-data.js"
   },
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/bandinopla/weightxreps-server.git"
@@ -42,7 +43,6 @@
     "mysql": "^2.18.1",
     "node-emoji": "^2.1.3",
     "nodemailer": "^6.6.5",
-    "nodemon": "^2.0.12",
     "stream-to-promise": "^3.0.0",
     "twit": "^2.2.11"
   },
@@ -53,11 +53,16 @@
     "@graphql-codegen/typescript": "^2.0.0",
     "@graphql-codegen/typescript-operations": "^2.0.1",
     "@graphql-codegen/typescript-react-apollo": "^3.0.0",
+    "@tsconfig/node14": "^14.1.2",
+    "@types/node": "^22.5.5",
     "esm-to-cjs": "^1.2.0",
     "gulp": "^4.0.2",
     "gulp-ssh": "^0.7.0",
     "gulp-util": "^3.0.8",
     "request": "^2.88.2",
+    "rimraf": "^6.0.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.6.2",
     "unzipper": "^0.10.11",
     "vinyl-ftp": "^0.6.1"
   }
