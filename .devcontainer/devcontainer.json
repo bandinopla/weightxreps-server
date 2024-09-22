@@ -7,7 +7,7 @@
     "postCreateCommand": "cp .env.example .env && npm install && npm run seed-db",
     "features": {
         "ghcr.io/devcontainers/features/node:1": {
-            "version":18
+            "version":20
         }
     },
     "customizations": {

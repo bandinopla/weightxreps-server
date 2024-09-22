@@ -42,7 +42,7 @@ jobs:
           password: ${{ secrets.PASS }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            source /home/${{ secrets.USER }}/nodevenv/wxr-server-staging/18/bin/activate
+            source /home/${{ secrets.USER }}/nodevenv/wxr-server-staging/20/bin/activate
             cd /home/${{ secrets.USER }}/wxr-server-staging
             npm ci --production
             nohup kill $(ps aux | grep "wxr-server-staging" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..." & 
