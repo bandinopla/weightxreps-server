@@ -20,6 +20,11 @@ jobs:
       - name: Build
         run: npm run build  
 
+      - name: Copy package.json and package-lock.json
+        run: |
+          cp package.json server-to-upload/package.json
+          cp package-lock.json server-to-upload/package-lock.json
+
       - name: Upload folder server-to-upload to FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
         with:
@@ -39,5 +44,5 @@ jobs:
           script: |
             source /home/${{ secrets.USER }}/nodevenv/wxr-server-staging/14/bin/activate
             cd /home/${{ secrets.USER }}/wxr-server-staging
-            npm install
+            npm ci --production
             nohup kill $(ps aux | grep "wxr-server-staging" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..." & 
