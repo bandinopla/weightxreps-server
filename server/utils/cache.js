@@ -1,9 +1,11 @@
 
-import LRUCache from "lru-cache";
+import { LRUCache } from "lru-cache";
 
 
 const $cache = new LRUCache({  
-        maxAge: process.env.NODE_ENV=='production'? 1000 * 60 * 60 : 0
+        ttl: process.env.NODE_ENV=='production'? 1000 * 60 * 60 : 1, 
+        ttlAutopurge: true,
+        max: 100,
 });
 
 

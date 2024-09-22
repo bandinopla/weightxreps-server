@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsnd --respawn --clear server/index.ts",
     "build": "tsc",
-    "start": "node server-to-upload/index.js",
+    "start": "NODE_ENV=production node server-to-upload/index.js",
     "build-and-run": "npm run build && npm start",
     "exportschema": "graphql-codegen --config codegen.yml && cp ./move-to-frontend/*.* ../client/src/data",
     "update-sbd-rank": "node sbd-rank/update-sbdrank-data.js",
@@ -15,7 +15,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/bandinopla/weightxreps-server.git"
-  },
+  }, 
   "keywords": [],
   "author": "pablo@weightxreps.net",
   "license": "GPL-3.0",
@@ -38,6 +38,7 @@
     "graphql-upload": "^12.0.0",
     "html-entities": "^2.3.2",
     "jsonwebtoken": "^8.5.1",
+    "lru-cache": "^11.0.1",
     "md5": "^2.3.0",
     "mysql": "^2.18.1",
     "node-emoji": "^2.1.3",

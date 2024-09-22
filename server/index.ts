@@ -20,6 +20,7 @@ async function startApolloServer( ) {
   const server  = new ApolloServer({ /*typeDefs, resolvers*/
      
     schema: WXRSchema
+    , persistedQueries: false
     , introspection: process.env.NODE_ENV !== 'production'
     
     , context: ({ req })=>{  
