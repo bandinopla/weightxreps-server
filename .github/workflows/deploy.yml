@@ -12,13 +12,13 @@ jobs:
         uses: actions/checkout@v3 
         
       - name: Install dependencies to be able to build
-        run: npm i esm-cjs javascript-obfuscator 
+        run: npm ci
 
       #
       # this is required because the hosting doesn't allow ESM NodeJS so i need to convert it to CJS...
       #
       - name: Build
-        run: node export-esm-to-cjs.cjs  
+        run: npm run build  
 
       - name: Upload folder server-to-upload to FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
