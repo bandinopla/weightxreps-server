@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Client Authenticate</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+ 
+  <script>
+    
+// Function to encode to Base64 URL
+const base64URLEncode = (arrayBuffer) => {
+  return btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+
+// Generate the code verifier
+const generateCodeVerifier = async () => {
+  const array = new Uint8Array(32);
+  window.crypto.getRandomValues(array);
+  const codeVerifier = base64URLEncode(array);
+  return codeVerifier;
+};
+
+// Generate the code challenge
+const generateCodeChallenge = async (codeVerifier) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+  const codeChallenge = base64URLEncode(hashBuffer);
+  return codeChallenge;
+};
+
+(async () => {
+  const codeVerifier = await generateCodeVerifier();
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
+  const codeChallengeMethod = "S256"
+
+  localStorage.setItem("code-verifier", codeVerifier);
+  console.log('Code Verifier:', codeVerifier);
+  console.log('Code Challenge:', codeChallenge);
+
+  
+  window.go = function() {
+        var base = window.location.origin;
+        var url = base+"/oauth/?grant_type=authorization_code&response_type=code&client_id=myClientId&redirect_uri="+escape(base+"/oauth/client-app")+"&state=myState&code_challenge="+codeChallenge+"&code_challenge_method="+codeChallengeMethod+"&scope=email,profile";
+        window.open(url,"_self")
+    }
+
+})();
+ 
+
+  </script>
+</head>
+<body class='container'>
+  <h1>Authentication</h1>
+  <p>Client app will attempt to access oauth server authentication via oauth</p>
+  <p>For this example, the following parameters will be included in the request query parameters:</p>
+  <ul>
+    <li>client_id: myClientId</li>
+    <li>redirect_uri: http://localhost:3030/client/app</li>
+    <li>response_type: code</li>
+    <li>grant_type: authorization_code</li>
+    <li>state: myState</li>
+  </ul>
+  <a href="#" onclick="javascript:go()" class='btn btn-primary'>Login with Oauth Server</a>
+</body>
+</html>

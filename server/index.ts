@@ -10,8 +10,15 @@ import $config from "./config.js";
 import { StartCronJobs } from "./cron-jobs.js";
 import { createSessionContext } from './db/resolvers/session.js';
 import WXRSchema from "./db/schema/WXRSchema.js";
+import bodyParser from 'body-parser'; 
+import cors from "cors";
+import {OAuthRouter, oauthServer} from "./auth/router.js";
+import { isCrossOriginRequest } from './utils/is-cross-origin.js';
 
-const isCodespace = process.env.CODESPACES === 'true';
+const isCodespace   = process.env.CODESPACES === 'true';
+const isProduction  = process.env.NODE_ENV === 'production';
+const baseUrl       = ( isProduction?"/wxr-server-2":"" );
+const PORT          = process.env.PORT || 4000;
 
 async function startApolloServer( ) {
   
@@ -21,7 +28,7 @@ async function startApolloServer( ) {
      
     schema: WXRSchema
     , persistedQueries: false
-    , introspection: process.env.NODE_ENV !== 'production'
+    , introspection: !isProduction
     
     , context: ({ req })=>{  
         return {
@@ -69,16 +76,32 @@ async function startApolloServer( ) {
 
   const app         = express();
 
-  app.use(
-      compression(),
-
+  app.use( 
+      cors(),
+      compression(), 
       //https://github.com/jaydenseric/graphql-upload#function-graphqluploadexpress
       graphqlUploadExpress({ maxFileSize: $config.maxFileUploadSizeInKilobytes * 1000, maxFiles: 10 }),//1000000
-  ); 
-  
+      bodyParser.json(),
+      bodyParser.urlencoded({ extended: false }),
+  );  
 
-  //const httpServer  = createServer(app);
-  const baseUrl = (process.env.NODE_ENV=='production' && process.env.NODE_SSHTUNNEL!='yes'?"/wxr-server-2":"");
+  app.use('/oauth', OAuthRouter);
+
+  // //app.use(baseUrl + '/graphql', oauthServer.authenticate() ); // routes to access the protected stuff
+  // // Middleware to conditionally apply OAuth authentication for cross-origin requests
+  // app.use(baseUrl + '/graphql', (req, res, next) => { 
+
+  //   // Check if the request is coming from a different origin
+  //   if ( isCrossOriginRequest(req) ) { 
+      
+  //     // If it's cross-origin, apply OAuth authentication
+  //     console.log("EXEC OAUTH!!!");
+  //     oauthServer.authenticate()(req, res, next);
+  //   } else { 
+  //     // If it's same-origin, skip OAuth and proceed
+  //     next();
+  //   }
+  // }); // Routes to access the protected stuff
 
   server.applyMiddleware({
      app, 
@@ -122,19 +145,18 @@ async function startApolloServer( ) {
 </style>` ) })  
  
   // Modified server startup
-  const PORT = process.env.PORT || 4000;
+  
  
     await new Promise( resolve => app.listen(PORT, ()=>resolve(null)));
  
 
   console.log(`🚀 Server ready !at http://localhost:${PORT}${server.graphqlPath}`);
-}
-
+} 
 
 
 startApolloServer(); 
 
-if(!isCodespace)
+if( isProduction )
 {
   StartCronJobs();
 }
