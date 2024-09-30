@@ -1,46 +1,114 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <title>OAuth Authenticate</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link href="
+https://cdn.jsdelivr.net/npm/reset-css@5.0.2/reset.min.css
+" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: "Roboto", sans-serif;
+      font-weight: 400;
+      font-style: normal;
+
+    }
+    .mb10 { margin-bottom: 10px;}
+    .center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh
+    }
+
+    .center>div { 
+      padding: 30px;
+      border-radius: 20px;
+      background-color: #F8FAFD;
+      box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+    }
+
+    h1 {
+      font-size: 1.5em;
+    }
+
+    ul {
+      margin:20px 0;
+    }
+    li {
+      list-style-type: none;
+      /* Remove default bullet */
+      position: relative;
+      padding: 5px;
+      padding-left: 20px;
+
+      /* Space for the check icon */
+    }
+
+    li::before {
+      content: '✔';
+      /* Unicode or emoji for checkmark */
+      color: green;
+      position: absolute;
+      left: 0;
+    }
+
+    .acl {
+      font-size: 0.8em;
+      padding: 10px;
+      background-color: #EAF0F9;
+      border-radius: 20px;
+    }
+  </style>
 </head>
-<body class='container'>
-  <h1>Authentication On Our Server</h1>
-  <form action='/oauth/authorize' method="post">
+
+<body>
+  <div class="center">
+    <div>
+      <h1 class="mb10">Do you allow <a id="appName" href="#" target="_blank">...</a> to...</h1>
+      <ul id="scopes"></ul>
+      <div class="acl">
+        You can revoke this at any time later by going to your settings in the "third party apps" section.
+      </div>
+      <!-- <form action='/oauth/authorize' method="post">
     <p>These inputs should be hidden in production</p>
     <div class='form-group'>
       <label>Client Id</label>
-      <input class='form-control' name='client_id'/>
+      <input class='form-control' name='client_id' />
     </div>
     <div class='form-group'>
       <label>Scope</label>
-      <input class='form-control' name='scope'/>
+      <input class='form-control' name='scope' />
     </div>
     <div class='form-group'>
       <label>Code challenge</label>
-      <input class='form-control' name='code_challenge'/>
+      <input class='form-control' name='code_challenge' />
     </div>
     <div class='form-group'>
       <label>Code challenge method</label>
-      <input class='form-control' name='code_challenge_method'/>
+      <input class='form-control' name='code_challenge_method' />
     </div>
 
     <div class='form-group'>
       <label>Redirect Uri</label>
-      <input class='form-control' name='redirect_uri'/>
+      <input class='form-control' name='redirect_uri' />
     </div>
     <div class='form-group'>
       <label>Response Type</label>
-      <input class='form-control' name='response_type'/>
+      <input class='form-control' name='response_type' />
     </div>
     <div class='form-group'>
       <label>Grant Type</label>
-      <input class='form-control' name='grant_type'/>
+      <input class='form-control' name='grant_type' />
     </div>
     <div class='form-group'>
       <label>State</label>
-      <input class='form-control' name='state'/>
+      <input class='form-control' name='state' />
     </div>
     <p>Any other inputs are used to help validate the client, run other custom actions on the server, etc...</p>
     <p>
@@ -56,20 +124,41 @@
       <input class='form-control auth' type="text" name="password" value="password" />
     </div>
     <input type='submit' class='btn btn-success' />
-  </form>
+  </form> -->
+    </div>
+  </div>
   <script>
-  ;(function(){
-    const urlParams = new URLSearchParams(window.location.search)
-    ;['client_id','redirect_uri', 'response_type', 'grant_type', 'state',"code_challenge","code_challenge_method","scope"].forEach(type => {
-      const input = document.body.querySelector(`input[name=${type}]`)
-      const value = urlParams.get(type)
-      input.value = value
-    })
-    const error = urlParams.get('success') === 'false'
-    if(error) {
-      document.body.querySelectorAll('.auth').forEach(el => el.classList.add('is-invalid'))
-    }
-  }())
+
+    const $config = {};
+    const doc = document;
+
+    doc.addEventListener('DOMContentLoaded', function () {
+      let link = doc.getElementById("appName");
+      link.innerText = $config.appName;
+      link.href = $config.appUrl;
+
+      let ul = doc.getElementById("scopes");
+      Object.values($config.scopes).forEach(value => {
+        const li = doc.createElement('li');
+        li.textContent = value;
+        ul.appendChild(li);
+      });
+    });
+
+
+    // ; (function () {
+    //   const urlParams = new URLSearchParams(window.location.search)
+    //     ;['client_id', 'redirect_uri', 'response_type', 'grant_type', 'state', "code_challenge", "code_challenge_method", "scope"].forEach(type => {
+    //       const input = document.body.querySelector(`input[name=${type}]`)
+    //       const value = urlParams.get(type)
+    //       input.value = value
+    //     })
+    //   const error = urlParams.get('success') === 'false'
+    //   if (error) {
+    //     document.body.querySelectorAll('.auth').forEach(el => el.classList.add('is-invalid'))
+    //   }
+    // }())
   </script>
 </body>
+
 </html>

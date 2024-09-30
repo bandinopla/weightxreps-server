@@ -330,6 +330,44 @@ CREATE TABLE IF NOT EXISTS`forum` (
   `fecha_de_publicacion` datetime NOT NULL
 );
 
+
+---
+--- OAUTH TABLES
+---
+
+CREATE TABLE oauth_clients (
+    id SERIAL PRIMARY KEY,
+    client_id VARCHAR(255) UNIQUE NOT NULL,
+    app_name VARCHAR(12) NOT NULL,
+    app_url VARCHAR(2048) NOT NULL,
+    client_secret VARCHAR(255),
+    redirect_uri TEXT NOT NULL
+);
+
+CREATE TABLE oauth_authorization_token (
+    token VARCHAR(255) PRIMARY KEY,
+    redirect_uri VARCHAR(2048) NOT NULL,
+    expires_at TIMESTAMP NOT NULL, 
+    client_id VARCHAR(255) REFERENCES oauth_clients(client_id),
+    user_id INTEGER UNSIGNED NOT NULL REFERENCES users(id),
+    code_challenge VARCHAR(64) NOT NULL,
+    code_challenge_method VARCHAR(10) NOT NULL,
+    scope TEXT  -- Storing the scope associated with the token 
+);
+
+CREATE TABLE oauth_access_tokens (
+    refresh_token VARCHAR(255) NOT NULL PRIMARY KEY,
+    refresh_expires_at TIMESTAMP NOT NULL, 
+    access_token VARCHAR(255) NOT NULL,
+    access_expires_at TIMESTAMP NOT NULL,  
+    client_id VARCHAR(255) REFERENCES oauth_clients(client_id),
+    user_id INTEGER UNSIGNED NOT NULL REFERENCES users(id),
+    scope TEXT, -- Storing the scope associated with the token
+    
+    INDEX access_token (`access_token`)
+);
+
+
 --
 -- Índices para tablas volcadas
 --

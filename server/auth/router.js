@@ -1,24 +1,69 @@
 const path = require('path') // has path and __dirname
 const express = require('express')
 const router = express.Router()
-const oauthUserAuthorizeScreen = path.join(__dirname, './oauthAuthenticate.html')
+//const oauthUserAuthorizeScreen = path.join(__dirname, './oauthAuthenticate.html')
 const oauthServer = require('./server.js');
+const { oauth_scopes } = require('./scopes.js');
+const fs = require('fs');
+const { query } = require('../db/connection.js');
 
-
-router.get('/client-login', (req, res) => res.sendFile(path.join(__dirname, './clientAuthenticate.html')))
+//router.get('/client-login', (req, res) => res.sendFile(path.join(__dirname, './clientAuthenticate.html')))
 router.get('/client-app', (req,res) => res.sendFile(path.join(__dirname, './clientApp.html')))
 
 //
-// screen were the user authorizes the client app to connect to weightxreps.
+// returns data to feed the OAuth confirmation screen to the user. Gets' details on the client id and the scope's descriptions.
 //
-router.get('/', (req, res) => {  // send back a simple form for the oauth
-    res.sendFile(oauthUserAuthorizeScreen)
+router.get('/', async (req, res) => {   
+    
+    let clientId    = req.query.client_id; 
+    let scopes      = req.query.scope?.split(",");
+
+    //
+    // validate client id
+    //
+    let row         = await query("SELECT * FROM oauth_clients WHERE client_id=?", [clientId]);
+
+    if(!row.length) {
+        res.status(404).send(`Client [${clientId}] not found`);
+        return;
+    }  
+
+    //
+    // validate scope
+    //
+    const validScope = scopes.every(element => !!oauth_scopes[element] );
+ 
+    if(!validScope) {
+        res.status(400).send(`Invalid/Unknown scopes requested: ${scopes}`);
+        return;
+    }
+
+    const $confirmationScreenData = {
+        scopes: scopes.reduce((out, scope)=>{
+            out[scope] = oauth_scopes[scope];
+            return out
+        },{ read:"Read your logs" }),
+        appName: row[0].app_name,
+        appUrl: row[0].app_url
+    };
+
+    res.json($confirmationScreenData);
+
+    // fs.readFile(oauthUserAuthorizeScreen, 'utf8', (err, data) => {
+    //     if (err) {
+    //       return res.status(500).send('Error reading file');
+    //     }
+        
+    //     const modifiedData = data.replace('$config = {}', `$config = ${JSON.stringify()}`);
+        
+    //     res.send(modifiedData);
+    //   });
 });
 
 router.post('/authorize', (req, res, next) => { 
     const { username, password } = req.body
     if (username === 'username' && password === 'password') { //<--- usuario en nuestra base
-        req.body.user = { user: 1 }
+        req.body.user = { id: 1 }
         return next()
     }
     const params = [ // Send params back down
