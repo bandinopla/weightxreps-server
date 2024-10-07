@@ -1,23 +1,25 @@
 ![Logo](https://github.com/bandinopla/weightxreps-client/raw/main/public/session-banner.jpg)
+> [Weight For Reps](http://weightxreps.net) is a training journal logging tool to help you keep track of your weight training. Mostly orientated towards Powerlifting/Weightlifting style of training.
 
-# Welcome
+# Welcome! 
+
 I am thrilled to announce 😂 that I am releasing my [backend code](https://github.com/bandinopla/weightxreps-server) and [frontend code](https://github.com/bandinopla/weightxreps-client) to the community as open source. This has been a long-time goal of mine and I am excited to see the impact it will have. 
+<br/><br/>
 
-By making the code available to all, I am hoping to attract contributions from other developers that can help enhance the codebase. This will result in a stronger and more reliable code, as well as promote collaboration and creativity within the community. 
+# The Server 
 
-I believe that this open source release will be a great step forward for the project and I can't wait to see what the community will create with it.
+The server runs in [NodeJS](https://nodejs.org/en/) / [Express](https://expressjs.com/) and uses  [GraphQL](https://graphql.org/) vía [Apollo Server (v3)](https://www.apollographql.com/docs/apollo-server/v3) to connect with the frontend.
+
+## Endpoints
 
 
-# The Server
-This is the code for the server side of http://weightxreps.net 
+- graphql -> http://weightxreps.net/api/graphql 
+    - ( load that endpoint in the [GraphQL Explorer](https://studio.apollographql.com/sandbox/schema/reference) to see the schema docs )
+- OAuth2 -> http://weightxreps.net/api/auth 
+    - > Read our [api/auth documentation](OAUTH.md) if you are an app developer.
+- express -> http://weightxreps.net/api
+ 
 
-> Weight For Reps is a training journal logging tool to help you keep track of your weight training. Mostly orientated towards Powerlifting/Weightlifting style of training.
-
-The server runs in [NodeJS](https://nodejs.org/en/) as a [GraphQL](https://graphql.org/) server but it is wrapped with [Express](https://expressjs.com/) so the potential to use it for other things is there but currently not used.
-
-The Front-End comunicates with this server vía [GraphQL](https://graphql.org/) calls to `http://weightxreps.net/wxr-server-2/graphql` using [Apollo GraphQL](https://www.apollographql.com/docs/react/) ( both client and server )
-
----
 
 ## :newspaper: Run dev environment
 To setup a development database on your machine use [docker](https://www.docker.com/). VS Code should detect the `.devcontainer` folder automatically. A notification will pop up, asking if you want to "Reopen in Container." Click on that option.
@@ -25,6 +27,14 @@ To setup a development database on your machine use [docker](https://www.docker.
 If you don’t see the notification, you can manually start the container by:
 - Going to the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on macOS).
 - Typing and selecting "`Dev Containers: Reopen in Container`".
+
+## No docker? 
+Then the specs needed to run this are:
+- `Node v20.17.0`
+- `mysql  Ver 8.0.39` or **Ideally** `mariadb:10.6.19` with strict mode off and [`mysql_native_password`](https://dev.mysql.com/doc/refman/8.4/en/native-pluggable-authentication.html)
+- Execute these queries to create the db `wxr-dev-db/sql/*.sql` 
+- Seed database `npm run seed-db`
+- *...know that the server is running on linux in production.*
 
 ---
 
@@ -48,7 +58,7 @@ The code lives in the `./server` folder. The code that handles the GraphQL is in
 #### :warning: Files you need !
 
 - `firebase-adminsdk-credentials.js`
-you will need to create & place this file inside of `server` with a [firebase account](https://console.firebase.google.com/).  
+you will need to create & place this file inside of `server` with a [firebase account](https://console.firebase.google.com/). This is used by the "login with" widget which uses Firebase.
 
 ---
 

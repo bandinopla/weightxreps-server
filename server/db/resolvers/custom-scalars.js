@@ -8,9 +8,22 @@ export const CustomScalarsResolver = {
      */
          UTCDate: new GraphQLScalarType({
             name        : "UTCDate",
-            description : 'Timestamp...',
+            description : 'A string. The result of a `(new Date()).toUTCString()`',
     
-            serialize       : value => value.toUTCString(),
+            serialize       : value => {
+
+                if( typeof value == 'string' ) 
+                {
+                    value = new Date(value)
+                }
+
+                if( !isDate(value) )
+                {
+                    throw new UserInputError(`Invalid date`);
+                }
+
+                return value.toUTCString()
+            },
             parseValue      : value => {
                 
                 let d = new Date(value);
@@ -21,26 +34,12 @@ export const CustomScalarsResolver = {
                 }
             
                 throw new UserInputError(`Invalid date, must be the product of a date.toUTCString()`);
-            }
-            // ,
-            // parseLiteral    : ast => {
-    
-            //     if (ast.kind === Kind.STRING) {
-            //         let d = new Date(ast.value);
-    
-            //         if( d instanceof Date && !isNaN(d) )
-            //         {
-            //             return d;
-            //         }
-            //     }
-    
-            //     throw new UserInputError("Invalid date");
-            // }
+            } 
         }), 
     
         YMD:  new GraphQLScalarType({
             name        : "YMD",
-            description : 'YYYY-MM-DD date...',
+            description : 'A valid YYYY-MM-DD date (UTC) string... Ex: "2030-01-23"',
     
             // puede que sea un date. 
             serialize       : value => typeof value=='string'? value : dateASYMD(value, true),
@@ -52,38 +51,18 @@ export const CustomScalarsResolver = {
                 
                 if( ymd.match(/^\d{4}-\d{2}-\d{2}$/) ) 
                 {
-                    let d       = new Date( ymd.substr(0,4), Number(ymd.substr(5,2))-1, ymd.substr(8) );
-                    let check   = (d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate()).toString();
-    
-                    if( ymd.replace(/-/g,"")==check )
-                    {
-                        return value;
-                    }
+                    const [year, month, day] = dateString.split('-').map(Number);
+
                 }
     
                 throw new UserInputError("Invalid date! must be YYYY-MM-DD");
     
-            }
-            // ,parseLiteral    : ast => {
-    
-            //     if (ast.kind === Kind.STRING) {
-    
-            //         let ymd     = ast.value;
-            //         let d       = new Date( ymd.substr(0,4), Number(ymd.substr(5,2))-1, ymd.substr(8) );
-    
-            //         if( d instanceof Date && !isNaN(d) )
-            //         {
-            //             return d;
-            //         }
-            //     }
-    
-            //     throw new UserInputError("Provided value is not a valid date");
-            // }
+            } 
         }), 
 
         YYYYMMDD: new GraphQLScalarType({
             name            : "YYYYMMDD",
-            description     : 'YMD with just numbers...',
+            description     : 'YMD with just numbers... Ex: 20300112',
             serialize       : value => value,
             parseValue      : value => {
                 
@@ -103,4 +82,8 @@ export const CustomScalarsResolver = {
                 throw new UserInputError("Invalid date! must be YYYYMMDD (no symbols in between the numbers)");
             }
         }),
+}
+
+function isDate(value) {
+    return Object.prototype.toString.call(value) === '[object Date]';
 }

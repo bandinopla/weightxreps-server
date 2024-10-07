@@ -26,3 +26,4 @@ editor-mode.js
 server/firebase-adminsdk-credential.js
 sbd-rank/data.csv
 .env
+docs/

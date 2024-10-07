@@ -1,11 +1,20 @@
-import gql from "graphql-tag"; 
+import gql from "graphql-tag";  
+import { FORUM_ROLES } from "../resolvers/forum/data";
 
-const $types = gql`
+
+const $types = gql` 
 
     type ForumRole {
         id:ID!
         title:String!
+        """
+        Can do ALL, meaning, everything. Setting this to true will ignore the "can"
+        """
         all:Boolean
+
+        """
+        ID of the action that it can do...
+        """
         can:[String!] # id of the actions it can do...
     }
 
@@ -64,5 +73,7 @@ const $types = gql`
     }
 
 `;
+
+export const ForumRolesDocMarkup = "\n\`\`\`txt\n" + Object.entries(FORUM_ROLES).map( e=>e[1].id+" = "+e[1].description ).join("\n") + "\n\`\`\`";
 
 export default $types;

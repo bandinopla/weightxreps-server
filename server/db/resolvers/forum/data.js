@@ -35,7 +35,7 @@ export const FORUM_ROLES = {
         title: "Community Noter",
         description:"Can attach notes to posts to complement or dispute information."
     }
-}
+} 
 
 /**
  * Hardcoded sections...

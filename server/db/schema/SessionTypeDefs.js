@@ -17,6 +17,10 @@ const $types = gql`
     loginWithFirebase( token:String!, uname:String, isf:Int, usekg:Int ):String! @no_oauth
     forgot( uore:String! ):Boolean! @no_oauth
     signup( uname:String!, email:String!, pass:String!, isf:Int!, usekg:Int! ):Boolean! @no_oauth
+
+    """
+    When a signup is made, a code is sent to the email. That code is then used here and the return will be a \`session token\`
+    """
     verifySignup( code:String! ):String! @no_oauth #--- devuelve el session token para que el front haga login
   }
 `;

@@ -5,6 +5,10 @@ const baseStatFields = `
     e:ID!
     w:Weight!
     bw:Weight
+
+    """
+    If of the user that did this...
+    """
     by:ID!
 `;
 
@@ -21,7 +25,12 @@ type Heavyest implements BaseStat {
 }
 
 type Estimated1RM implements BaseStat {
+
+    """
+    Original weight used in the set that resulted in this estimated 1RM.
+    """
     originalw:Weight!
+    
     reps:Int!
     ymd:YMD!
     ${baseStatFields}

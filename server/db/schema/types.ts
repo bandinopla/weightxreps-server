@@ -92,9 +92,12 @@ export enum BulkMode {
   Merge = 'MERGE'
 }
 
+/** Country code : ISO 3166-1 alpha-2 ( 2 letters ) */
 export type Cc = {
   __typename?: 'CC';
+  /** country code */
   cc: Scalars['ID'];
+  /** Name of the country */
   name: Scalars['String'];
 };
 
@@ -796,6 +799,7 @@ export type Query = {
   /** Returns all the achievements that this user has up to that particular date. */
   getAchievementsStateOf?: Maybe<Array<Maybe<AchievementState>>>;
   getActiveSupporters?: Maybe<Array<Maybe<Supporter>>>;
+  /** Returns the activity of the users that fall in the context of `type`  */
   getActivityFeed?: Maybe<Array<Maybe<UCard>>>;
   getAllPublicInteractionsInbox?: Maybe<Inbox>;
   getAnnouncements?: Maybe<Array<Maybe<SystemNotification>>>;
@@ -851,8 +855,8 @@ export type QueryGetAchievementsStateOfArgs = {
 
 
 export type QueryGetActivityFeedArgs = {
-  newerThan?: InputMaybe<Scalars['String']>;
-  olderThan?: InputMaybe<Scalars['String']>;
+  newerThan?: InputMaybe<Scalars['UTCDate']>;
+  olderThan?: InputMaybe<Scalars['UTCDate']>;
   type: ActivityFeedType;
 };
 
@@ -1135,16 +1139,17 @@ export enum TweetType {
   AsDonation2 = 'AS_DONATION2'
 }
 
+/** Represent a journal post's minimal data to show the user what it was done. A brief detail of the log. */
 export type UCard = {
   __typename?: 'UCard';
   andXmore?: Maybe<Scalars['Int']>;
   itemsLeftAfterThis?: Maybe<Scalars['Int']>;
   media?: Maybe<Scalars['String']>;
-  posted?: Maybe<Scalars['String']>;
+  posted?: Maybe<Scalars['YMD']>;
   text?: Maybe<Scalars['String']>;
   user?: Maybe<User>;
   utags?: Maybe<UTagsUsed>;
-  when?: Maybe<Scalars['String']>;
+  when?: Maybe<Scalars['UTCDate']>;
   workoutPreview?: Maybe<Array<Maybe<EblockPreview>>>;
 };
 
@@ -1347,12 +1352,12 @@ export type ExecBulkExercisesMutation = { __typename?: 'Mutation', execBulkExerc
 
 export type GetFeedQueryVariables = Exact<{
   type: ActivityFeedType;
-  olderThan?: InputMaybe<Scalars['String']>;
-  newerThan?: InputMaybe<Scalars['String']>;
+  olderThan?: InputMaybe<Scalars['UTCDate']>;
+  newerThan?: InputMaybe<Scalars['UTCDate']>;
 }>;
 
 
-export type GetFeedQuery = { __typename?: 'Query', getActivityFeed?: Array<{ __typename?: 'UCard', when?: string | null, text?: string | null, andXmore?: number | null, posted?: string | null, media?: string | null, itemsLeftAfterThis?: number | null, user?: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null, workoutPreview?: Array<{ __typename?: 'EblockPreview', r?: number | null, w?: number | null, e: { __typename?: 'Exercise', id: string, name: string, type?: string | null } } | null> | null, utags?: { __typename?: 'UTagsUsed', tags?: Array<{ __typename?: 'UTag', id?: string | null, name: string } | null> | null, values?: Array<{ __typename?: 'UTagValue', id?: string | null, tagid: string, type: string, value: string } | null> | null } | null } | null> | null };
+export type GetFeedQuery = { __typename?: 'Query', getActivityFeed?: Array<{ __typename?: 'UCard', when?: any | null, text?: string | null, andXmore?: number | null, posted?: any | null, media?: string | null, itemsLeftAfterThis?: number | null, user?: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null, workoutPreview?: Array<{ __typename?: 'EblockPreview', r?: number | null, w?: number | null, e: { __typename?: 'Exercise', id: string, name: string, type?: string | null } } | null> | null, utags?: { __typename?: 'UTagsUsed', tags?: Array<{ __typename?: 'UTag', id?: string | null, name: string } | null> | null, values?: Array<{ __typename?: 'UTagValue', id?: string | null, tagid: string, type: string, value: string } | null> | null } | null } | null> | null };
 
 export type GetForumMessagesQueryVariables = Exact<{
   sectionId?: InputMaybe<Scalars['ID']>;

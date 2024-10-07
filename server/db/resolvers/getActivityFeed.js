@@ -18,6 +18,8 @@ const totalJournals = async ( parent, args, context ) => {
 
 const getActivityFeed = async ( parent, args, context ) => {  
 
+    console.log("ARGS", args)
+
     const $LIMIT                    = 50;
     let setItemsLeftValue           = true;
     let TIME_CONSTRAIN_QUERY        = " ORDER BY A.last_log DESC";
@@ -218,7 +220,7 @@ const getActivityFeed = async ( parent, args, context ) => {
                                 , joined    : row.joined.toUTCString()
                                 , forumRole : user.forumRole
                             }
-                            , when          : row.last_log && row.last_log.toUTCString()
+                            , when          : row.last_log //&& row.last_log.toUTCString()
                         }
                     }
 

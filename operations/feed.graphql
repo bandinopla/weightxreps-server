@@ -1,4 +1,4 @@
-  query GetFeed( $type:ActivityFeedType!, $olderThan:String, $newerThan:String ){
+  query GetFeed( $type:ActivityFeedType!, $olderThan:UTCDate, $newerThan:UTCDate ){
  
     getActivityFeed( type:$type, olderThan:$olderThan, newerThan:$newerThan ) {
         user {

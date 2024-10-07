@@ -28,8 +28,18 @@ const $types = gql`
       ${$SettingFields}
   }
 
+  """
+  Country code : ISO 3166-1 alpha-2 ( 2 letters )
+  """
   type CC {
+      """
+      country code
+      """
       cc:ID!
+
+      """
+      Name of the country
+      """
       name:String!
   }
   
@@ -98,10 +108,38 @@ const $types = gql`
       
   }
   extend type Mutation { 
+
+    """
+    Uploads an image to be used as the avatar for the currently logged in user.
+    """
     uploadAvatar(file: Upload!): String! @auth @oauth(scope:"avatar")
+
+    """
+    Removes the avatar from the currently logged in user.
+    """
     deleteAvatar: Boolean @auth @oauth(scope:"avatar")
+
+    """
+    Used to set the value of a setting for the currenlty logged in user.
+    """
     setSetting( id:ID!, value:SettingValue ):UserSetting @auth @needsUserInfo @no_oauth
-    sendVerificationCode( id:ID!, code:String! ):UserSetting @auth @needsUserInfo @no_oauth
+
+    """
+    Some settings, when changed, send a code to the user's email, then that code has to be used here to confirm the change of the setting.
+    """
+    sendVerificationCode( 
+        """
+        ID of the setting
+        """
+        id:ID!, 
+        """
+        The verification code
+        """
+        code:String! ):UserSetting @auth @needsUserInfo @no_oauth
+
+    """
+    When the system sends an email, it provides a link at the bottom to unsub from recieving emails. That code is passed to this mutation to identify the user and remove the subscription.
+    """
     unsubFromEmails( token:String ): Boolean @no_oauth
   }
 `;

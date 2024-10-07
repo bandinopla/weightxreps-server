@@ -22,10 +22,10 @@ services:
     redirectUris:
       - "http://localhost:5173/wxr-login"
 ```
-### Config structure
+## Config structure
 | key | desc |
 | --- | --- |
-| `services` | an `array` of services. MAX: **5** |
+| `services` | an `array` of services. Max length: `5` |
 | `services[i].id` | `id` of your service. Should match `/^[a-zA-Z0-9._-]+$/`
 | `services[i].dbid?` | Will appear and be set automatically, will link the service with the database. You don't need to touch this value at all..
 | `services[i].name` | `string` to show to the user, the name of your app.
@@ -100,12 +100,13 @@ To get the access token you will follow this flow:
  
 
 ## Authorization code from Popup
-If you open the authorization request url in a popup window, in that case popup will send the authorization code back to you using [`window.opener.postMessage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) with `event.data.weightxrepsOnOAuthResult` = A or B
+### If you open the authorization request url in a popup window...
+... in that case the popup will send the authorization code back to you using [`window.opener.postMessage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) with `event.data.weightxrepsOnOAuthResult` = A or B
 - A `{ error:"Some error message" }`
 - B `{ code:"the authorizaton code"}` 
 <br/><br/><br/>
 
----
+
 # SCOPES | Available Permissions
 When you ask for permission to a user, you will as the user what things you want to access or do, that info is sent in the `scope` parameter that is a `string` or comma separated values. The values are keys that represent things that can be done. The link bellow links to a javascript object with a sope per key with the description as it's value.
 

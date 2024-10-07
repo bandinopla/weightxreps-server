@@ -178,19 +178,77 @@ const $types = gql`
      
 
   extend type Query {  
+
     userInfo( uname:String! ):UserInfo! @needsUserInfo 
     userBasicInfo( of:ID, ofThese:[ID!] ):[User!]
+
+    """
+    Returns the info to be used by the calendar UI to show the dates
+    """
     getCalendarDays( uid:ID!, from:YYYYMMDD!, to:YYYYMMDD! ):[CalendarDayKey] @UserMustAllow 
+
+    """
+    Get the jorunal data for a particular day
+    """
     jday(uid:ID!, ymd:YMD):JLog @UserMustAllow 
-    jrange(uid:ID!, ymd:YMD!, range:Int!):JRangeData @UserMustAllow 
-    jeditor(ymd:YMD, range:Int):JEditorData @auth @UserMustAllow 
+
+    """
+    Get the range data between a date \`ymd\` - \`range * 7\` and \`ymd\`
+    """
+    jrange(
+        """
+        ID of the user
+        """
+        uid:ID!, 
+        """
+        End date
+        """
+        ymd:YMD!, 
+        """
+        will be multiplied by 7 to go back from the \`ymd\` 
+        """
+        range:Int!):JRangeData @UserMustAllow 
+
+    """
+    Returs the data for the editor for the current user (the widget that is used to edit a workout)
+    Params work similar to \`jrange\`
+    """
+    jeditor(
+        """
+        Date or End date (if range is used)
+        """
+        ymd:YMD, 
+        """
+        will be multiplied by 7 to go back from the \`ymd\` 
+        """
+        range:Int):JEditorData @auth @UserMustAllow 
+
+    """
+    Downloads the current user logs
+    """
     downloadLogs:JEditorData @auth @needsUserInfo
+
+    """
+    Who else posted on this date?
+    """
     alsoposted(ymd:YMD):[User]
+
+    """
+    Data for the "year overview" widget. The mini calendar that shows an entire year and the number represent a score based on how much volume was done.
+    """
     getYearOverview( uid:ID!, year:Int! ):[Int] @UserMustAllow 
+
+    """
+    Years logged by the user.
+    """
     getYearsLogged( uid:ID! ):[Int] @UserMustAllow
   }
 
   extend type Mutation {
+
+      """
+      Save a journal post
+      """
       saveJEditor( rows:[JEditorSaveRow], defaultDate:YMD! ):Boolean @auth @oauth(scope:"jwrite") @needsUserInfo 
   }
 `;
