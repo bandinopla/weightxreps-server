@@ -1,4 +1,5 @@
 import gql from "graphql-tag";
+import { oauthSettingTypeDefs, oauthSettingTypeNames } from "../../auth/settings/graphqlSettingTypeDefs";
 
 const $SettingFields = `
     id:ID!
@@ -14,7 +15,7 @@ const $types = gql`
   }
 
   type EmailSetting implements Setting { 
-    currentEmail:String!
+    currentEmail:String! @oauth(scope:"email",action:REPLACE, replacement:"----")
     ${$SettingFields}
   }
 
@@ -87,21 +88,21 @@ const $types = gql`
     links:[String]
     ${$SettingFields}
   }
+   
+  ${ oauthSettingTypeDefs($SettingFields) }
 
-
-  union UserSetting = UsernameSetting | EmailSetting | VoidSetting | DOBSetting | CCSetting | OptionSetting | SupporterStatus | Custom1RMFactorSetting | RPESetting | DeleteAccountSetting | BlockUsersSetting | SocialMediasSetting
+  union UserSetting = UsernameSetting | EmailSetting | VoidSetting | DOBSetting | CCSetting | OptionSetting | SupporterStatus | Custom1RMFactorSetting | RPESetting | DeleteAccountSetting | BlockUsersSetting | SocialMediasSetting | ${oauthSettingTypeNames.join("|")}
 
   extend type Query {
-      getUserSettings:[UserSetting]! @auth @UserMustAllow
+      getUserSettings:[UserSetting]! @auth @no_oauth @needsUserInfo
       
   }
   extend type Mutation { 
-    uploadAvatar(file: Upload!): String! @auth #--- deveulve el HASH
-    deleteAvatar: Boolean @auth
-    setSetting( id:ID!, value:SettingValue ):UserSetting @auth @UserMustAllow
-    sendVerificationCode( id:ID!, code:String! ):UserSetting @auth @UserMustAllow 
-    
-    unsubFromEmails( token:String ): Boolean
+    uploadAvatar(file: Upload!): String! @auth @oauth(scope:"avatar")
+    deleteAvatar: Boolean @auth @oauth(scope:"avatar")
+    setSetting( id:ID!, value:SettingValue ):UserSetting @auth @needsUserInfo @no_oauth
+    sendVerificationCode( id:ID!, code:String! ):UserSetting @auth @needsUserInfo @no_oauth
+    unsubFromEmails( token:String ): Boolean @no_oauth
   }
 `;
 

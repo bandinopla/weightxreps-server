@@ -85,8 +85,8 @@ const $types = gql`
         # con id es EDIT
         # con id y sin name es DELETE
         #
-        execExercise( id:ID, name:String, confirms:ID ):ExecExerciseResponse @auth
-        execBulkExercises ( eids:[ID!]!, mode:BulkMode! ):Boolean @auth
+        execExercise( id:ID, name:String, confirms:ID ):ExecExerciseResponse @auth @oauth(scope:"jwrite")
+        execBulkExercises ( eids:[ID!]!, mode:BulkMode! ):Boolean @auth @oauth(scope:"jwrite")
     }
 `;
 

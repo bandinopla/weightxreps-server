@@ -79,7 +79,7 @@ var $pool = {
 /**
  * Devuelve un apromesa que resuelve al API a usar dentro de esta trasnaccion.
  * 
- * @returns {{ query:(sql:string, parameters:array)=>mysql.Query, commit:()=>void }}
+ * @returns {{ query:(sql:string, parameters:array)=>mysql.Query, commit:()=>void, abort: (err:string)=>void }}
  */
 export const transaction = ()=> {
     return new Promise( (resolve, reject)=>{

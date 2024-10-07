@@ -20,7 +20,9 @@ import { sendEmail } from '../../utils/send-email.js';
 import { ChangeUsernameSetting } from './settings/ChangeUsernameSetting.js';
 import { SocialMediaSetting } from './settings/SocialMediaSetting.js';
 import { RecieveEmailsSetting } from './settings/RecieveEmailsSetting.js';
-import { extractTokenData } from "../../utils/token.js";
+import { extractTokenData } from "../../utils/token.js"; 
+import { ConnectedServicesSetting } from '../../auth/settings/ConnectedServicesSetting.js';
+import { DeveloperConfigSetting } from '../../auth/settings/DeveloperConfigSetting.js';
 
 const $settings = [
     new EmailSetting(),
@@ -38,7 +40,9 @@ const $settings = [
     new DeleteAccountSetting(),
     new BlockUsersSetting(),
     new ChangeUsernameSetting(),
-    new SocialMediaSetting()
+    new SocialMediaSetting(),
+    new ConnectedServicesSetting(),
+    new DeveloperConfigSetting()
 ]
 
 export const SettingsResolver = {  

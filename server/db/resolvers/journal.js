@@ -362,7 +362,7 @@ export const JournalResolver = {
         jday: async (parent, args, context)=>{
 
             const ymd = args.ymd;
-            const uid = context.userInfo.id; //porque se usa la directive @UserMustAllow que injecta eso
+            const uid = context.userInfo.id;  
 
             //
             // get log

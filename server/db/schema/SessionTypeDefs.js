@@ -12,12 +12,12 @@ const $types = gql`
   }
 
   extend type Mutation { 
-    login( u:String!, p:String! ):String! 
-    loginWithGoogle( jwt:String!, uname:String, isf:Int, usekg:Int ):String!
-    loginWithFirebase( token:String!, uname:String, isf:Int, usekg:Int ):String! 
-    forgot( uore:String! ):Boolean!
-    signup( uname:String!, email:String!, pass:String!, isf:Int!, usekg:Int! ):Boolean!
-    verifySignup( code:String! ):String! #--- devuelve el session token para que el front haga login
+    login( u:String!, p:String! ):String! @no_oauth
+    loginWithGoogle( jwt:String!, uname:String, isf:Int, usekg:Int ):String! @no_oauth
+    loginWithFirebase( token:String!, uname:String, isf:Int, usekg:Int ):String! @no_oauth
+    forgot( uore:String! ):Boolean! @no_oauth
+    signup( uname:String!, email:String!, pass:String!, isf:Int!, usekg:Int! ):Boolean! @no_oauth
+    verifySignup( code:String! ):String! @no_oauth #--- devuelve el session token para que el front haga login
   }
 `;
 

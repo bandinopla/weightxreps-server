@@ -162,12 +162,12 @@ const $types = gql`
     # todos los mensajes del usuario logeado
     # DM Mode : si le pasas  dmsWithUID 
     #
-    getInbox    ( newerThan:UTCDate, olderThan:UTCDate, dmsWithUID:ID )     :Inbox @auth 
+    getInbox    ( newerThan:UTCDate, olderThan:UTCDate, dmsWithUID:ID )     :Inbox @auth @oauth(scope:"read:inbox")
 
     # ---
     # All notification relevant to this user
     #
-    getNotifications    ( newerThan:UTCDate, olderThan:UTCDate  )     :Inbox @auth 
+    getNotifications    ( newerThan:UTCDate, olderThan:UTCDate  )     :Inbox @auth @oauth(scope:"read:notifications")
 
     # ---
     # todos los jcomments y likes a esos comments de un log en particular.

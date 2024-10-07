@@ -58,9 +58,9 @@ const $types = gql`
     }
 
     extend type Mutation {
-        postForumMessage(sectionId:ID!, parentId:ID, message:String!):ID @auth 
-        setForumPostNote( messageId:ID!, note:String! ):Boolean @auth
-        deleteForumMessage(id:ID, why:String):Boolean @auth
+        postForumMessage(sectionId:ID!, parentId:ID, message:String!):ID @auth @oauth(scope:"forum,forum:write")
+        setForumPostNote( messageId:ID!, note:String! ):Boolean @auth @no_oauth
+        deleteForumMessage(id:ID, why:String):Boolean @auth  @oauth(scope:"forum,forum:delete")
     }
 
 `;

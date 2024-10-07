@@ -38,5 +38,6 @@ export default function extractUserDataFromRow( row ) {
         , joined: row.joined.toUTCString()
         , usekg: row.usekg
         , forumRole : getForumRoleById( row.forumRole )?.key
+        , email: row.email
     }
 }

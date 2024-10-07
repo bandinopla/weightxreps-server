@@ -1,5 +1,6 @@
-import * as dotenv from 'dotenv' 
-dotenv.config();
+// import * as dotenv from 'dotenv' 
+// dotenv.config();
+import 'dotenv/config'
 
 
 const $global = {
@@ -21,7 +22,9 @@ const $global = {
     googleClientID: process.env.GOOGLE_CLIENT_ID,
 
     tokenSecret: process.env.TOKEN_SECRET,
-    twitterConfig: process.env.TWITTER_CONFIG
+    twitterConfig: process.env.TWITTER_CONFIG,
+
+    frontEndUrl: process.env.FRONTEND_APP_URL ?? "http://weightxreps.net"
 }
   
 export default $global; ;

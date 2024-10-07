@@ -1,3 +1,4 @@
+import { deleteDeveloperData } from "../../../auth/model.js";
 import { query } from "../../connection.js";
 import { BaseSetting } from "./BaseSetting.js";
 
@@ -86,6 +87,11 @@ export class DeleteAccountSetting extends BaseSetting {
         // forum messages
         //
         await query( `UPDATE forum SET post_comment="" WHERE uid=?`, [userInfo.id] );
+
+        //
+        // oauth stuff...
+        //
+        await deleteDeveloperData(userInfo.id);
 
         /**
          * en inbox, si no se encuentra el "journal" en el left join pero hay logid, asumir que el journal se borro, no devolver esos items!

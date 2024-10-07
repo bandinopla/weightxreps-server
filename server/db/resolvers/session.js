@@ -78,7 +78,7 @@ const login = async (parent, args, context) => {
 }
 
 
-export const createSessionContext = req => {
+export const getWxrUserFromRequestToken = req => {
 
     const token = (req.headers.authorization || '').split(" "); 
     let sessionData;
@@ -95,8 +95,9 @@ export const createSessionContext = req => {
         }
         
     } 
+    //console.log("SESSION!!!!", sessionData)
 
-    return { session: sessionData };
+    return sessionData;
 }
 
  

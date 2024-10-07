@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "NODE_ENV=production node server-to-upload/index.js",
     "build-and-run": "npm run build && npm start",
-    "exportschema": "graphql-codegen --config codegen.yml && cp ./move-to-frontend/*.* ../client/src/data",
+    "exportschema": "graphql-codegen --config codegen.yml",
     "update-sbd-rank": "node sbd-rank/update-sbdrank-data.js",
     "seed-db": "tsnd wxr-dev-db/fill-with-dummy-data.js"
   },
@@ -51,9 +51,10 @@
     "twit": "^2.2.11"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "2.0.1",
+    "@graphql-codegen/cli": "^5.0.2",
     "@graphql-codegen/fragment-matcher": "3.0.0",
     "@graphql-codegen/introspection": "2.0.0",
+    "@graphql-codegen/plugin-helpers": "^5.0.4",
     "@graphql-codegen/typescript": "^2.0.0",
     "@graphql-codegen/typescript-operations": "^2.0.1",
     "@graphql-codegen/typescript-react-apollo": "^3.0.0",

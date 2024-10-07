@@ -6,12 +6,12 @@ import { query } from "../connection.js";
 import { GetUserInfo } from "../resolvers/journal.js";
 
 /**
- * se asegura que el UID de quien vamos a obtener datos nos deja ver los datos.
- * EJ: chequear que no sea privado y no estemos bloqueados...
+ * Injects context.userInfo based on parameters from the requst trying to guess the subject user. 
  */
 
 export const UserInfoDirective = gql`
     directive @UserMustAllow on OBJECT | FIELD_DEFINITION
+    directive @needsUserInfo on OBJECT | FIELD_DEFINITION
 `;
 
 export const UserInfoSchemaTransformer = (schema) =>
@@ -23,7 +23,13 @@ export const UserInfoSchemaTransformer = (schema) =>
                 "UserMustAllow"
             )?.[0];
 
-            if (thisDirective) {
+            const thisDirectiveB = getDirective(
+                schema,
+                fieldConfig,
+                "needsUserInfo"
+            )?.[0];
+
+            if (thisDirective || thisDirectiveB) {
                 const { resolve = defaultFieldResolver } = fieldConfig;
 
                 fieldConfig.resolve = async function (
@@ -68,7 +74,7 @@ export const UserInfoSchemaTransformer = (schema) =>
                                 context.session?.id,
                             args.uname != null
                         );
-                        context.userInfo = userInfo;
+                        context.userInfo = userInfo;  
                     }
 
                     return resolve(source, args, context, info);

@@ -15,3 +15,7 @@ generates:
       - typescript
       - typescript-operations
       - typescript-react-apollo
+  server/db/schema/types.ts:
+    plugins:
+      - typescript
+      - typescript-operations

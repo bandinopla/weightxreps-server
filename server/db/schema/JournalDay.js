@@ -178,20 +178,20 @@ const $types = gql`
      
 
   extend type Query {  
-    userInfo( uname:String! ):UserInfo! @UserMustAllow 
+    userInfo( uname:String! ):UserInfo! @needsUserInfo 
     userBasicInfo( of:ID, ofThese:[ID!] ):[User!]
     getCalendarDays( uid:ID!, from:YYYYMMDD!, to:YYYYMMDD! ):[CalendarDayKey] @UserMustAllow 
     jday(uid:ID!, ymd:YMD):JLog @UserMustAllow 
     jrange(uid:ID!, ymd:YMD!, range:Int!):JRangeData @UserMustAllow 
     jeditor(ymd:YMD, range:Int):JEditorData @auth @UserMustAllow 
-    downloadLogs:JEditorData @auth @UserMustAllow
+    downloadLogs:JEditorData @auth @needsUserInfo
     alsoposted(ymd:YMD):[User]
     getYearOverview( uid:ID!, year:Int! ):[Int] @UserMustAllow 
     getYearsLogged( uid:ID! ):[Int] @UserMustAllow
   }
 
   extend type Mutation {
-      saveJEditor( rows:[JEditorSaveRow], defaultDate:YMD! ):Boolean @auth @UserMustAllow 
+      saveJEditor( rows:[JEditorSaveRow], defaultDate:YMD! ):Boolean @auth @oauth(scope:"jwrite") @needsUserInfo 
   }
 `;
 

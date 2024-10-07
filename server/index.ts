@@ -1,164 +1,142 @@
-//import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
-import { ApolloServer } from 'apollo-server-express';
-import responseCachePlugin from 'apollo-server-plugin-response-cache';
-
+import bodyParser from 'body-parser';
+import cors from "cors";
 import compression from "compression";
 import express from 'express';
+import { ApolloError, ApolloServer } from 'apollo-server-express';
 
+import responseCachePlugin from 'apollo-server-plugin-response-cache'; 
 import graphqlUploadExpress from 'graphql-upload/public/graphqlUploadExpress.js';
 import $config from "./config.js";
 import { StartCronJobs } from "./cron-jobs.js";
-import { createSessionContext } from './db/resolvers/session.js';
-import WXRSchema from "./db/schema/WXRSchema.js";
-import bodyParser from 'body-parser'; 
-import cors from "cors";
-import {OAuthRouter, oauthServer} from "./auth/router.js";
-import { isCrossOriginRequest } from './utils/is-cross-origin.js';
+import WXRSchema from "./db/schema/WXRSchema.js"; 
+import { OAuthRouter } from "./auth/router.js";
+import { sessionMiddleware } from './session.js';
 
-const isCodespace   = process.env.CODESPACES === 'true';
-const isProduction  = process.env.NODE_ENV === 'production';
-const baseUrl       = ( isProduction?"/wxr-server-2":"" );
-const PORT          = process.env.PORT || 4000;
 
-async function startApolloServer( ) {
-  
  
-  // Same ApolloServer initialization as before
-  const server  = new ApolloServer({ /*typeDefs, resolvers*/
-     
-    schema: WXRSchema
-    , persistedQueries: false
-    , introspection: !isProduction
-    
-    , context: ({ req })=>{  
-        return {
-          ...createSessionContext( req )
-        }  
-      }
-  
-    , plugins:[ 
-          //process.env.NODE_ENV === 'production'? ApolloServerPluginLandingPageDisabled() : ApolloServerPluginLandingPageLocalDefault({ footer: false }) ,
-          //ApolloServerPluginLandingPageGraphQLPlayground(),
-          //ApolloServerPluginLandingPageLocalDefault({ footer: false }),
+const isProduction = process.env.NODE_ENV === 'production';
+const baseUrl = "*"; 
+const PORT = process.env.PORT || 4000;
 
-          //
-          // el sessionId es un identificador del usuario unico.
-          //
-          responseCachePlugin({
-            sessionId: (requestContext) => {
-               
-              return requestContext.request.http?.headers.get('authorization') || null
+
+
+async function startApolloServer() { 
+
+    // Same ApolloServer initialization as before
+    const server = new ApolloServer({ /*typeDefs, resolvers*/
+
+        schema: WXRSchema
+        , persistedQueries: false
+        , introspection: !isProduction
+
+        , context: ({ req, res }) => {
+
+            //session.id
+
+            //@ts-ignore
+            if (req.session) //logged as a weightxreps user...
+            {
+                return {
+                    //@ts-ignore
+                    session: req.session
+                };
             }
-          })
-    ]
 
-    , formatError: (err) => { 
+            //@ts-ignore
+            else if (req.oauthSession) //<--- defined in `sessionMiddleware`
+            {
+                //@ts-ignore
+                if (req.oauthSession.error) {
+                    //@ts-ignore
+                    throw new ApolloError(req.oauthSession.error)
+                }
 
-        /*
-        if( err.message.indexOf("ECONNREFUSED")>0 )
-        {
-          return new Error("Failed to connect to the database...");
+                return {
+                    //@ts-ignore
+                    session: { id: req.oauthSession.id },
+                    //@ts-ignore
+                    oauthSession: req.oauthSession
+                }
+            }
         }
-        */
-        return err; 
-    }
 
-    // , dataSources: ()=>{
-    //   return {
-    //     cachedQueries: new CachedQueries()
-    //   }
-    // }
+        , plugins: [
+            //process.env.NODE_ENV === 'production'? ApolloServerPluginLandingPageDisabled() : ApolloServerPluginLandingPageLocalDefault({ footer: false }) ,
+            //ApolloServerPluginLandingPageGraphQLPlayground(),
+            //ApolloServerPluginLandingPageLocalDefault({ footer: false }),
 
-  });
+            //
+            // el sessionId es un identificador del usuario unico.
+            //
+            responseCachePlugin({
+                sessionId: (requestContext) => {
 
-  // Required logic for integrating with Express
-  await server.start(); 
+                    return requestContext.request.http?.headers.get('authorization') || null
+                }
+            })
+        ]
 
-  const app         = express();
+        , formatError: (err) => {
 
-  app.use( 
-      cors(),
-      compression(), 
-      //https://github.com/jaydenseric/graphql-upload#function-graphqluploadexpress
-      graphqlUploadExpress({ maxFileSize: $config.maxFileUploadSizeInKilobytes * 1000, maxFiles: 10 }),//1000000
-      bodyParser.json(),
-      bodyParser.urlencoded({ extended: false }),
-  );  
+            /*
+            if( err.message.indexOf("ECONNREFUSED")>0 )
+            {
+              return new Error("Failed to connect to the database...");
+            }
+            */
+            return err;
+        }
 
-  app.use('/oauth', OAuthRouter);
+        // , dataSources: ()=>{
+        //   return {
+        //     cachedQueries: new CachedQueries()
+        //   }
+        // }
 
-  // //app.use(baseUrl + '/graphql', oauthServer.authenticate() ); // routes to access the protected stuff
-  // // Middleware to conditionally apply OAuth authentication for cross-origin requests
-  // app.use(baseUrl + '/graphql', (req, res, next) => { 
+    });
 
-  //   // Check if the request is coming from a different origin
-  //   if ( isCrossOriginRequest(req) ) { 
-      
-  //     // If it's cross-origin, apply OAuth authentication
-  //     console.log("EXEC OAUTH!!!");
-  //     oauthServer.authenticate()(req, res, next);
-  //   } else { 
-  //     // If it's same-origin, skip OAuth and proceed
-  //     next();
-  //   }
-  // }); // Routes to access the protected stuff
+    // Required logic for integrating with Express
+    await server.start();
 
-  server.applyMiddleware({
-     app, 
-     path: baseUrl + '/graphql',
-     bodyParserConfig: {
-        limit: "2mb"
-     }
-  }); 
+    const app = express();
+
+    app.use(
+        cors(),
+        sessionMiddleware,
+        compression(),
+        graphqlUploadExpress({ maxFileSize: $config.maxFileUploadSizeInKilobytes * 1000, maxFiles: 10 }), //https://github.com/jaydenseric/graphql-upload#function-graphqluploadexpress
+        bodyParser.json(),
+        bodyParser.urlencoded({ extended: false }),
+    );
+
+    app.use(baseUrl + '/auth', OAuthRouter);
 
 
-  app.get(baseUrl, (req, res) => { res.send(`<div style="
-  font-family: 'Courier New', monospace;
-  background-color: #000;
-  color: #0f0;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-  display: inline-block;
-  white-space: nowrap;
-"> 
-  <div style="margin-bottom: 10px;">
-    C:\&gt; Weight For Reps Server!  (｡◕‿‿◕｡)
-  </div>
-  <div>
-    Source code: <a href="https://github.com/bandinopla/weightxreps-server">Click here</a>
-  </div>
-  <div style="
-    display: inline-block;
-    width: 10px;
-    height: 20px;
-    background-color: #0f0;
-    animation: blink 1s step-end infinite;
-  "></div>
-</div>
+    server.applyMiddleware({
+        app,
+        path: baseUrl + '/graphql',
+        bodyParserConfig: {
+            limit: "2mb"
+        }
+    });
 
-<style>
-  @keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0; }
-  }
-</style>` ) })  
- 
-  // Modified server startup
-  
- 
+
+    app.get(baseUrl, (req, res) => { res.redirect("https://github.com/bandinopla/weightxreps-server"); })
+
+    // Modified server startup
+
+
     await new Promise( resolve => app.listen(PORT, ()=>resolve(null)));
- 
-
-  console.log(`🚀 Server ready !at http://localhost:${PORT}${server.graphqlPath}`);
-} 
 
 
-startApolloServer(); 
+    console.log(`🚀 Server ready !at http://localhost:${PORT}${server.graphqlPath}`);
+}
+
+
+startApolloServer();
 
 if( isProduction )
 {
-  StartCronJobs();
+    StartCronJobs();
 }
 
-  

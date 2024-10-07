@@ -30,8 +30,8 @@ const TWITTER_SCHEMA = gql`
   }
 
   extend type Mutation {
-    setTweet( id:ID, type:TweetType ):Boolean @auth
-    deleteTweet( id:ID ):Boolean @auth
+    setTweet( id:ID, type:TweetType ):Boolean @auth @no_oauth
+    deleteTweet( id:ID ):Boolean @auth @no_oauth
   }
 `;
 

@@ -19,6 +19,7 @@ import Videos from "./Videos.js";
 import TWITTER_SCHEMA from "./Twitter.js";
 import TAGS from "./tags.js";
 import FORUM from "./forum.js";
+import { OAuthDirective, OAuthDirectiveSchemaTransformer } from "../../auth/oauthGraphQLDirective.js";
 
 const baseTypeDefs = gql`
 
@@ -56,6 +57,7 @@ const baseTypeDefs = gql`
     forumRole:String # a string label to be used in a chip to show the role of this user in the forums.
 
     socialLinks:[String] #Array de strings a urls de sus social sites...
+    email:String @auth @oauth(scope:"email2", action:REPLACE, replacement:"not_allowed_by_scope")
   }
 
   type Exercise {
@@ -85,9 +87,10 @@ const baseTypeDefs = gql`
 `;
   
  
-const schema = makeExecutableSchema({ 
+var schema = makeExecutableSchema({ 
   typeDefs: [ 
               AccessRestrictionDirective
+            , OAuthDirective
             , UploadTypedef
             , UserInfoDirective
             , baseTypeDefs
@@ -112,6 +115,8 @@ const schema = makeExecutableSchema({
 }); 
 
 
-export default AccessRestrictionSchemaTransformer(
-                  UserInfoSchemaTransformer(schema)
-                );
+schema = UserInfoSchemaTransformer(schema);
+schema = AccessRestrictionSchemaTransformer( schema );
+schema = OAuthDirectiveSchemaTransformer( schema );
+
+export default schema;

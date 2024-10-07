@@ -64,6 +64,32 @@ fragment SettingFields on UserSetting {
         ... on SocialMediasSetting {
             links
         }
+
+        ...on ConnectedServicesSetting {
+            connections {
+                id 
+                name 
+                url
+            }
+        }
+
+        ...on DeveloperConfigSetting {
+            config {  
+                confirmChanges {
+                    hash
+                    changelog
+                } 
+                services { 
+                    id
+                    dbid
+                    name
+                    url 
+                    redirectUris 
+                    secret
+                }
+            }
+            
+        }
 }
 
 query GetSettings {
@@ -75,7 +101,7 @@ query GetSettings {
 
 mutation SetSetting( $id:ID!, $value:SettingValue ) {
     setSetting( id:$id, value:$value ) {
-        ...SettingFields
+        ...SettingFields 
     }
 }
 
