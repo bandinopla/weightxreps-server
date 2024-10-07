@@ -14,7 +14,7 @@ The server runs in [NodeJS](https://nodejs.org/en/) / [Express](https://expressj
 
 
 - graphql -> http://weightxreps.net/api/graphql 
-    - ( load that endpoint in the [GraphQL Explorer](https://studio.apollographql.com/sandbox/schema/reference) to see the schema docs )
+    - Schema documentation at [GraphQL Explorer](https://studio.apollographql.com/sandbox?endpoint=https%3A%2F%2Fstaging.weightxreps.net%2Fapi%2Fgraphql) That link points to the staging DB but the schema is the same.
 - OAuth2 -> http://weightxreps.net/api/auth 
     - > Read our [api/auth documentation](OAUTH.md) if you are an app developer.
 - express -> http://weightxreps.net/api

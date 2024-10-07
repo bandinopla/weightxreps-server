@@ -6,8 +6,7 @@ export async function getAnnouncementsAsMessages (args, limit) {
 
     const globalMessages = await query(`SELECT * FROM messages WHERE isGlobal=1 
                                         AND ${ args.olderThan? `fecha<?` : '1=1' } 
-                                        ORDER BY id DESC LIMIT ${limit}`, [ args.olderThan ]);
-                                         
+                                        ORDER BY id DESC LIMIT ${limit}`, [ args.olderThan ]);                         
 
     const threads = globalMessages.map( row=>({
         id:"global:"+row.id,
@@ -21,19 +20,21 @@ export async function getAnnouncementsAsMessages (args, limit) {
         post_preview:"" 
     }));
 
-    // find proxies
-    const proxies = await query(`SELECT * FROM forum WHERE ${ threads.map(t=>"post_comment=?").join(" OR ") }`, threads.map(t=>t.id));
+    if( threads.length ){
+        // find proxies
+        const proxies = await query(`SELECT * FROM forum WHERE ${ threads.map(t=>"post_comment=?").join(" OR ") }`, threads.map(t=>t.id));
 
-    // merge proxy data
-    proxies.forEach( proxy => {
+        // merge proxy data
+        proxies.forEach( proxy => {
 
-        const thread = threads.find( t=>t.id==proxy.post_comment );
-        if( thread )
-        {
-            thread.replies_count = proxy.replies_count; 
-        }
+            const thread = threads.find( t=>t.id==proxy.post_comment );
+            if( thread )
+            {
+                thread.replies_count = proxy.replies_count; 
+            }
 
-    } );
+        } );
+    }
 
     return threads;
 

@@ -106,7 +106,7 @@ const baseTypeDefs = gql`
     """ 
     ${ForumRolesDocMarkup}
     """
-    forumRole:Int 
+    forumRole:ForumRoleKey 
 
     """
     URLs of social media or whatever...

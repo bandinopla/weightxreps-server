@@ -12,7 +12,7 @@ export const VideosResolver = {
                                     FROM logs
 
                                     JOIN (
-                                        SELECT id, uid, MAX(fecha_del_log) AS recent_date
+                                        SELECT uid, MAX(fecha_del_log) AS recent_date
                                         FROM logs
                                         WHERE log LIKE '%youtube.com%' OR log LIKE '%youtu.be%' OR log LIKE '%instagram.com%'
                                         GROUP BY uid

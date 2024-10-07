@@ -4,6 +4,10 @@ import { FORUM_ROLES } from "../resolvers/forum/data";
 
 const $types = gql` 
 
+    enum ForumRoleKey {
+        ${Object.entries(FORUM_ROLES).map( e=>e[0] ).join("\n")}
+    }
+
     type ForumRole {
         id:ID!
         title:String!
