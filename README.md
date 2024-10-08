@@ -17,6 +17,8 @@ The server runs in [NodeJS](https://nodejs.org/en/) / [Express](https://expressj
     - Schema documentation at [GraphQL Explorer](https://studio.apollographql.com/sandbox?endpoint=https%3A%2F%2Fstaging.weightxreps.net%2Fapi%2Fgraphql) That link points to the staging DB but the schema is the same.
 - OAuth2 -> http://weightxreps.net/api/auth 
     - > Read our [api/auth documentation](docs/OAUTH.md) if you are an app developer.
+    - > For the frontend use [**weightxreps-oauth**](https://github.com/bandinopla/weightxreps-oauth) : [React](https://github.com/facebook/react) component to obtain a weightxreps OAuth2 access token and user.
+    [![npm version](https://img.shields.io/npm/v/weightxreps-oauth.svg?logo=react)](https://www.npmjs.com/package/weightxreps-oauth)
 
 ## :newspaper: Run in docker
 To setup a development database on your machine use [docker](https://www.docker.com/). VS Code should detect the `.devcontainer` folder automatically. A notification will pop up, asking if you want to "Reopen in Container." Click on that option.

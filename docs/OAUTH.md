@@ -35,7 +35,9 @@ services:
 
 # Conecting your app
 ## If using Javascipt...
-In case you are using `javascript` to develop your app, use the npm [weightxreps-oauth](https://github.com/bandinopla/weightxreps-oauth) module.
+In case you are using `javascript` to develop your app, use the npm [weightxreps-oauth](https://www.npmjs.com/package/weightxreps-oauth) module.
+
+[![npm version](https://img.shields.io/npm/v/weightxreps-oauth.svg?logo=react)](https://www.npmjs.com/package/weightxreps-oauth)
 
 ## Other language ?
 You can talk to the oauth server on your own:
