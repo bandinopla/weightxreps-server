@@ -36,8 +36,14 @@ var $pool = {
   }
  
   
-
-  export const query = (sql, parameters, rawError ) => {  
+ /**
+  * 
+  * @param {string} sql the query
+  * @param {any} parameters parameters for the query
+  * @param {boolean} rawError If true, it will fail with the raw error and not the sugar coated one saying "Error while talking to the database..."
+  * @returns 
+  */
+  export const query = (sql, parameters, rawError = false) => {  
 
     return new Promise( (resolve, reject)=>{ 
 
@@ -60,14 +66,14 @@ var $pool = {
                         return reject(error);
                     }
                     
-                    $logError( error );
-                    console.log( { error } ); 
+                    $logError( error ); 
                     return reject( new Error("Error while talking to the database...") );
                 }
                 resolve( results ); 
             }); 
 
-            //console.log( q.sql, q.query )
+            if( process.env.VERBOSE==='true')
+                console.log( q.sql, q.query )
 
         } ); 
 

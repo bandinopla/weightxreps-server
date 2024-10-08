@@ -1,10 +1,14 @@
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 import { query } from "../server/db/connection.js"; 
 import { Resolvers } from "../server/db/Resolvers.js";
 import { GetUserInfo } from "../server/db/resolvers/journal.js";
-import { createSessionContext } from "../server/db/resolvers/session.js";
+import { getWxrUserFromRequestToken } from "../server/db/resolvers/session.js";
 import { dateASYMD } from "../server/utils/dateASYMD.js";
 import fs from 'fs';
 import * as dotenv from 'dotenv';
+import { glob } from 'glob'
+
 dotenv.config(); 
 
 //---------------------------------------------------------------------------------------
@@ -14,10 +18,13 @@ dotenv.config();
 //
 //---------------------------------------------------------------------------------------
 
-const TOTAL_USERS = 3;
-const LOGS_PER_USER = 7;
-const MAX_EXERCISES_PER_JOURNAL = 4;
-const PASSWORD_FOR_EVERYONE = "123456";
+var DROP_TABLES = true;
+var TOTAL_USERS = 3;
+var LOGS_PER_USER = 7;
+var MAX_EXERCISES_PER_JOURNAL = 4;
+var PASSWORD_FOR_EVERYONE = "123456"; 
+var VERBOSE = false;
+
 const exercises     = ["Squat", "Bench Press", "Front Squat #sq", "Deadlift"];
 const bwExercises   = ["Chinups","Pull Ups"]
  
@@ -25,20 +32,46 @@ const bwExercises   = ["Chinups","Pull Ups"]
 
 async function seed()
 {  
-    console.log("Starting...")
+    console.log("Starting...") 
 
-    // console.log("Deleting...");
-    // const res = await query(`   SHOW TABLES;
-    //                             SELECT CONCAT('DROP TABLE \`',table_name,'\`;') 
-    //                             FROM information_schema.tables 
-    //                             WHERE table_schema = '${ process.env.DB_NAME }' ; 
-    //                             SELECT 1
-    //                             `); 
+    let mode = DROP_TABLES?"DROP":"TRUNCATE";
 
-    // await query( "SET FOREIGN_KEY_CHECKS=0;" + res[1].map( row=>Object.values(row)[0] ).join("\n") + "SET FOREIGN_KEY_CHECKS=1;" );
+    console.log("Reset mode = "+mode);
+
+    const res = await query(`   SHOW TABLES;
+                                SELECT CONCAT('${mode} TABLE \`',table_name,'\`;') 
+                                FROM information_schema.tables 
+                                WHERE table_schema = '${ process.env.DB_NAME }' ; 
+                                SELECT 1
+                                `); 
+
+    let sql = "SET FOREIGN_KEY_CHECKS=0;" + 
+        res[1].map( row=>Object.values(row)[0] ).join("\n") 
+        + "SET FOREIGN_KEY_CHECKS=1;";
+
+        if( VERBOSE )
+            console.log( sql );
+
+    await query( sql );
 
     // console.log("Recreating tables...");
     // const init = await query( fs.readFileSync("wxr-dev-db/sql/db-setup.sql", "utf-8") );  
+
+    console.log("Running SQL files...");
+
+    var sqlfiles = await glob('wxr-dev-db/sql/*.sql', {  } );
+
+    sqlfiles = sqlfiles.sort();
+
+    for (let I = 0; I < sqlfiles.length; I++) 
+    {
+        if( VERBOSE )
+            console.log("Executing: "+ sqlfiles[I]);
+        
+        await query( fs.readFileSync(sqlfiles[I], "utf-8") );
+    }
+        
+    
 
 
     console.log(`Creating ${TOTAL_USERS} users...`);
@@ -66,11 +99,11 @@ async function seed()
         const code          = signup[0].code; 
         const loginToken    = await Resolvers.Mutation.verifySignup(null, { code });
 
-        const session       = createSessionContext({
+        const session       = getWxrUserFromRequestToken({
             headers: {
                 authorization: `Bearer ${loginToken}`
             }
-        }).session; 
+        }) ; 
 
 
         const userInfo = await GetUserInfo(
@@ -249,7 +282,8 @@ function randomEblock( userExercises, usekg ) {
                 },
                 r: 1+Math.floor(Math.random()*10) ,
                 s: 1+Math.floor(Math.random()*3) ,
-                c: com
+                c: com,
+                type: 0
             })
         }
         else 
@@ -262,7 +296,8 @@ function randomEblock( userExercises, usekg ) {
                 r: 1+Math.floor(Math.random()*10) ,
                 s: 1+Math.floor(Math.random()*3) ,
                 c: com,
-                rpe: set+1==erows && Math.random()>0.5? 9 : 0
+                rpe: set+1==erows && Math.random()>0.5? 9 : 0,
+                type: 0
             });
         }
     }
@@ -290,7 +325,67 @@ function generateLoremIpsum(numWords) {
   
 
 
-seed().then( ()=>{
-    console.log("Done. The database has been populated with dummy data!") 
-    process.exit();
-});
+
+// seed( process.argv[2]=='reset' ).then( ()=>{
+//     console.log("Done. The database has been populated with dummy data!") 
+//     process.exit();
+// });
+
+yargs(hideBin(process.argv))
+  .command('seed', 'start the seeding', () => {}, (argv) => {
+    
+    DROP_TABLES = argv.dropTables;
+    TOTAL_USERS = argv.totalUsers;
+    LOGS_PER_USER = argv.logsPerUser;
+    PASSWORD_FOR_EVERYONE = argv.passwords; 
+    VERBOSE = argv.verbose;
+
+    if( VERBOSE )
+    {
+        process.env.VERBOSE = "true";
+        
+    }
+
+    console.log("*****")
+    seed().then( ()=>{
+        console.log("Done. The database has been populated with dummy data!") 
+        process.exit();
+    });
+  })
+
+  .option('totalUsers', {
+    alias: 'tu',
+    type: 'number',
+    description: 'Total users to create', 
+    default: TOTAL_USERS
+  })
+
+  .option('logsPerUser', {
+    alias: 'lpu',
+    type: 'number',
+    description: 'Total log entries per user to create',
+    default: LOGS_PER_USER
+  })
+
+  .option('passwords', {
+    alias: 'ps',
+    type: 'string',
+    description: 'Every user\'s password',
+    default: PASSWORD_FOR_EVERYONE
+  })
+
+  .option('dropTables', {
+    alias: 'dt',
+    type: 'boolean',
+    description: 'true = DROP, false = TRUNCATE' 
+  })
+
+  .option('verbose', { 
+    type: 'boolean',
+    description: 'true = will console.log a bit more',
+    default: VERBOSE
+  })
+ 
+
+  .demandOption(["dropTables"],"You must be clear to tell what to do with the tables...")
+  .parse();

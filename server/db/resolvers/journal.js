@@ -9,12 +9,10 @@ import { dateASYMD, ymd2date } from "../../utils/dateASYMD.js";
 import { getPRsOf, JS_1RM_FORMULA, ORIGINAL_1RM_FACTOR, sql1RMFormula, SQL_SELECTING_CUSTOM1RM_FROM_USERS } from "./exercises.js";
 import { SaveJournalResolver } from "./save-journal.js";
 import { rpePercentLeftJoin } from "./rpe.js";
-import { decode } from 'html-entities';
 import { ExercisesResolver } from "./exercises.js";
 import { getUTags, getUTagsRangeData } from "./tags.js";
-import { WxDoT_DistanceOf, WxDoT_ForceOf, WxDoT_SpeedOf, WxDoT_GQLErowFields } from "./weight_x_distance_or_time.js";
+import { WxDoT_GQLErowFields } from "./weight_x_distance_or_time.js";
 import * as emoji from 'node-emoji'
-import {  getForumRoleById } from "./forum/data.js"; 
 import {  getForumStatusJsObject } from "./forum/resolver.js";
 
 /**
@@ -696,7 +694,7 @@ export const JournalResolver = {
             const days      = []; 
             const to        = args.ymd;
             const from      = _getYMDfromRange( args.ymd, args.range, context.userInfo, myid );
-
+ 
             //
             // devolver todos los erows en el rango solicitado
             //

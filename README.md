@@ -16,12 +16,9 @@ The server runs in [NodeJS](https://nodejs.org/en/) / [Express](https://expressj
 - graphql -> http://weightxreps.net/api/graphql 
     - Schema documentation at [GraphQL Explorer](https://studio.apollographql.com/sandbox?endpoint=https%3A%2F%2Fstaging.weightxreps.net%2Fapi%2Fgraphql) That link points to the staging DB but the schema is the same.
 - OAuth2 -> http://weightxreps.net/api/auth 
-    - > Read our [api/auth documentation](OAUTH.md) if you are an app developer.
-- express -> http://weightxreps.net/api
- 
+    - > Read our [api/auth documentation](docs/OAUTH.md) if you are an app developer.
 
-
-## :newspaper: Run dev environment
+## :newspaper: Run in docker
 To setup a development database on your machine use [docker](https://www.docker.com/). VS Code should detect the `.devcontainer` folder automatically. A notification will pop up, asking if you want to "Reopen in Container." Click on that option.
 
 If you don’t see the notification, you can manually start the container by:
@@ -30,13 +27,24 @@ If you don’t see the notification, you can manually start the container by:
 
 ## No docker? 
 Then the specs needed to run this are:
-- `Node v20.17.0`
-- `mysql  Ver 8.0.39` or **Ideally** `mariadb:10.6.19` with strict mode off and [`mysql_native_password`](https://dev.mysql.com/doc/refman/8.4/en/native-pluggable-authentication.html)
-- Execute these queries to create the db `wxr-dev-db/sql/*.sql` 
-- Seed database `npm run seed-db`
+- Node: `v20.17.0`
+- Database: [`mariadb v10.6.19`](https://mariadb.com/kb/en/mariadb-10-6-19-release-notes/) with `@@sql_mode=""` and [`mysql_native_password`](https://dev.mysql.com/doc/refman/8.4/en/native-pluggable-authentication.html) 
+- Create/Edit `.env` with the DB relevant variables. (use `.env.example` as base)
+- Seed database with fake data `npm run seed-db`
 - *...know that the server is running on linux in production.*
 
 ---
+
+## Seed Dev Database
+You have 2 options:
+1. ### Drop tables + seed 
+```
+npm run seed-db
+```
+2. ### Truncate (empty) tables + seed  
+```
+npm run truncate-db
+```
 
 ## :coffee: Run local dev server 
 
@@ -59,8 +67,13 @@ The code lives in the `./server` folder. The code that handles the GraphQL is in
 
 - `firebase-adminsdk-credentials.js`
 you will need to create & place this file inside of `server` with a [firebase account](https://console.firebase.google.com/). This is used by the "login with" widget which uses Firebase.
+ 
 
----
+## Save Editor Data Format
+When saving a workout, the resolver will recieve an array of `JEditorSaveRow` which is a scalar that can have many diferent interpretations...
+- [resolver `saveJEditor`](server/db/resolvers/save-journal.js) 
+- [scalar `JEditorSaveRow`](docs/JEditorSaveRow.md)
+
 
 ## :globe_with_meridians: SBD Rank
 This is the data used in the [SBD World Rank](https://weightxreps.net/sbd-stats) setion of the site.

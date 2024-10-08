@@ -10,9 +10,13 @@ import { query } from "../db/connection.js";
 const __emptyTransport = {
     sendMail: async (info)=>{
 
-        console.log("\n\n------- EMAIL \"Sent\" -----");
-        console.log( JSON.stringify( info, null, 4) );
-        console.log("-------------------------------------------------------\n\n");
+        if( process.env.VERBOSE==="true" )
+        {
+            console.log("\n\n------- SENDING FAKE EMAIL -----");
+            console.log( JSON.stringify( info, null, 4) );
+            console.log("-------------------------------------------------------\n\n");
+        }
+        
 
         return {
             accepted: [true]

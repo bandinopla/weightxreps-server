@@ -51,8 +51,13 @@ export const CustomScalarsResolver = {
                 
                 if( ymd.match(/^\d{4}-\d{2}-\d{2}$/) ) 
                 {
-                    const [year, month, day] = dateString.split('-').map(Number);
-
+                    let d       = new Date( ymd.substr(0,4), Number(ymd.substr(5,2))-1, ymd.substr(8) );
+                    let check   = (d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate()).toString();
+    
+                    if( ymd.replace(/-/g,"")==check )
+                    {
+                        return value;
+                    }
                 }
     
                 throw new UserInputError("Invalid date! must be YYYY-MM-DD");
