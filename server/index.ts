@@ -116,12 +116,12 @@ async function startApolloServer() {
         app,
         path: baseUrl + '/graphql',
         bodyParserConfig: {
-            limit: "2mb"
+            limit: "2mb"  
         }
     });
 
 
-    app.get(baseUrl, (req, res) => { res.redirect("https://github.com/bandinopla/weightxreps-server"); })
+    app.get(baseUrl, (req, res) => { res.send(`Backend code available at: https://github.com/bandinopla/weightxreps-server`); })
 
     // Modified server startup
 

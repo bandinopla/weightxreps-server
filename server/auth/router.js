@@ -24,7 +24,8 @@ router.get("/", (req, res, next) => {
     else 
     {
         const queryString = req.query ? `?${new URLSearchParams(req.query).toString()}` : '';
-        res.redirect( $global.frontEndUrl+"/oauth"+queryString ); 
+        const root = $global.frontEndUrl || "/.."; 
+        res.redirect( root+"/oauth"+queryString );  
     }
 });
 
