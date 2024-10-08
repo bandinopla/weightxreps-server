@@ -24,7 +24,7 @@ const $global = {
     tokenSecret: process.env.TOKEN_SECRET,
     twitterConfig: process.env.TWITTER_CONFIG,
 
-    frontEndUrl: process.env.FRONTEND_APP_URL ?? "http://weightxreps.net"
+    frontEndUrl: process.env.FRONTEND_APP_URL 
 }
   
 export default $global; ;
