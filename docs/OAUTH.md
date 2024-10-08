@@ -1,4 +1,6 @@
 # OAuth2
+<img src="https://pbs.twimg.com/media/GZZSjZJXwAAGtso?format=jpg&name=medium" alt="Oauth2 cover"/>
+
 ### So you want to let your app act in behalf of weightxreps users to offer them new functionality?
 You are in the right place! Here you find out how!
 
