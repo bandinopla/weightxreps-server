@@ -17,7 +17,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: | 
             rsync -av --exclude=".env" --exclude="useravatar" --exclude="nohup.out" --exclude="tmp" --exclude="stderr.log" --exclude="node_modules" --exclude=".ftp-deploy-sync-state.json" --exclude="firebase-adminsdk-credential.js" /home/${{ secrets.USER }}/wxr-server-staging/. /home/${{ secrets.USER }}/public_html/weightxreps.net/wxr-server-2/
-            source /home/${{ secrets.USER }}/nodevenv/public_html/weightxreps.net/wxr-server-2/14/bin/activate
+            source /home/${{ secrets.USER }}/nodevenv/public_html/weightxreps.net/wxr-server-2/20/bin/activate
             cd /home/${{ secrets.USER }}/public_html/weightxreps.net/wxr-server-2
             npm install
             nohup kill $(ps aux | grep "wxr-server-2" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..." &  
