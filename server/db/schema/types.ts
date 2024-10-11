@@ -43,12 +43,15 @@ export type AchievementState = {
 };
 
 export enum ActivityFeedType {
+  /** Only jorunals that the currently logged user is following */
   Following = 'following',
+  /** Every public journal */
   Global = 'global'
 }
 
 export type BaseStat = {
   bw?: Maybe<Weight>;
+  /** If of the user that did this... */
   by: Scalars['ID'];
   e: Scalars['ID'];
   w: Weight;
@@ -126,6 +129,7 @@ export type CommunityStats = {
   volume?: Maybe<Array<Maybe<MostVolume>>>;
 };
 
+/** A message that the user should read before an action will execute. */
 export type ConfirmAction = {
   __typename?: 'ConfirmAction';
   id: Scalars['ID'];
@@ -230,10 +234,14 @@ export type ERef = {
   exercise: Exercise;
 };
 
+/** Represents the preview of the workout done with this exercise */
 export type EblockPreview = {
   __typename?: 'EblockPreview';
+  /** The exercise used */
   e: Exercise;
+  /** Reps done with that max weight */
   r?: Maybe<Scalars['Int']>;
+  /** The max weight used */
   w?: Maybe<Scalars['Float']>;
 };
 
@@ -247,8 +255,10 @@ export type EmailSetting = Setting & {
 export type Estimated1Rm = BaseStat & {
   __typename?: 'Estimated1RM';
   bw?: Maybe<Weight>;
+  /** If of the user that did this... */
   by: Scalars['ID'];
   e: Scalars['ID'];
+  /** Original weight used in the set that resulted in this estimated 1RM. */
   originalw: Weight;
   reps: Scalars['Int'];
   w: Weight;
@@ -261,9 +271,11 @@ export type Exercise = {
   __typename?: 'Exercise';
   id: Scalars['ID'];
   name: Scalars['String'];
+  /** If it is an "official" exercise, this is the TAG.  */
   type?: Maybe<Scalars['String']>;
 };
 
+/** Total days and reps done by this exercise */
 export type ExerciseStat = {
   __typename?: 'ExerciseStat';
   days: Scalars['Int'];
@@ -326,11 +338,19 @@ export type ForumNotification = IBy & IForum & IHasJOwner & IHasText & INotifica
 
 export type ForumRole = {
   __typename?: 'ForumRole';
+  /** Can do ALL, meaning, everything. Setting this to true will ignore the "can" */
   all?: Maybe<Scalars['Boolean']>;
+  /** ID of the action that it can do... */
   can?: Maybe<Array<Scalars['String']>>;
   id: Scalars['ID'];
   title: Scalars['String'];
 };
+
+export enum ForumRoleKey {
+  Admin = 'ADMIN',
+  Moderator = 'MODERATOR',
+  Noter = 'NOTER'
+}
 
 export type ForumSection = {
   __typename?: 'ForumSection';
@@ -356,6 +376,7 @@ export enum Gender {
 export type Heavyest = BaseStat & {
   __typename?: 'Heavyest';
   bw?: Maybe<Weight>;
+  /** If of the user that did this... */
   by: Scalars['ID'];
   e: Scalars['ID'];
   reps: Scalars['Int'];
@@ -554,6 +575,7 @@ export type Messages = {
 export type MostVolume = BaseStat & {
   __typename?: 'MostVolume';
   bw?: Maybe<Weight>;
+  /** If of the user that did this... */
   by: Scalars['ID'];
   e: Scalars['ID'];
   totalReps: Scalars['Int'];
@@ -563,6 +585,7 @@ export type MostVolume = BaseStat & {
 export type Mutation = {
   __typename?: 'Mutation';
   _?: Maybe<Scalars['String']>;
+  /** Removes the avatar from the currently logged in user. */
   deleteAvatar?: Maybe<Scalars['Boolean']>;
   deleteForumMessage?: Maybe<Scalars['Boolean']>;
   deleteMessage?: Maybe<Scalars['Boolean']>;
@@ -579,15 +602,21 @@ export type Mutation = {
   loginWithFirebase: Scalars['String'];
   loginWithGoogle: Scalars['String'];
   postForumMessage?: Maybe<Scalars['ID']>;
+  /** Save a journal post */
   saveJEditor?: Maybe<Scalars['Boolean']>;
   sendMessage?: Maybe<SendMessageResult>;
+  /** Some settings, when changed, send a code to the user's email, then that code has to be used here to confirm the change of the setting. */
   sendVerificationCode?: Maybe<UserSetting>;
   setForumPostNote?: Maybe<Scalars['Boolean']>;
+  /** Used to set the value of a setting for the currenlty logged in user. */
   setSetting?: Maybe<UserSetting>;
   setTweet?: Maybe<Scalars['Boolean']>;
   signup: Scalars['Boolean'];
+  /** When the system sends an email, it provides a link at the bottom to unsub from recieving emails. That code is passed to this mutation to identify the user and remove the subscription. */
   unsubFromEmails?: Maybe<Scalars['Boolean']>;
+  /** Uploads an image to be used as the avatar for the currently logged in user. */
   uploadAvatar: Scalars['String'];
+  /** When a signup is made, a code is sent to the email. That code is then used here and the return will be a `session token` */
   verifySignup: Scalars['String'];
 };
 
@@ -772,6 +801,7 @@ export type OptionSetting = Setting & {
 
 export type Pr = {
   __typename?: 'PR';
+  /** how much weight was added to the bodyweight (if any) */
   a2bw?: Maybe<Scalars['Float']>;
   bw?: Maybe<Scalars['Float']>;
   lb: Scalars['Int'];
@@ -780,19 +810,24 @@ export type Pr = {
   when: Scalars['YMD'];
 };
 
+/** Personal records of this particular exercise and stats */
 export type PrHistory = {
   __typename?: 'PRHistory';
   exercise: Exercise;
   prs?: Maybe<Array<Maybe<Pr>>>;
+  /** How many sets of X reps were performed by this exercise? (Like... how many singles or triples) */
   setsOf?: Maybe<Array<Maybe<RepStat>>>;
   totalWorkouts: Scalars['Int'];
+  /** Records related to Weight for Distance or Time. This feature was added later that's why it is separated like this. */
   wxdotPRS?: Maybe<WxDotpRs>;
 };
 
 export type Query = {
   __typename?: 'Query';
+  /** Who else posted on this date? */
   alsoposted?: Maybe<Array<Maybe<User>>>;
   communityStats?: Maybe<CommunityStats>;
+  /** Downloads the current user logs */
   downloadLogs?: Maybe<JEditorData>;
   /** Returns all the available achievements that the system recognizes/has. */
   getAchievements?: Maybe<Array<Maybe<Achievement>>>;
@@ -803,8 +838,10 @@ export type Query = {
   getActivityFeed?: Maybe<Array<Maybe<UCard>>>;
   getAllPublicInteractionsInbox?: Maybe<Inbox>;
   getAnnouncements?: Maybe<Array<Maybe<SystemNotification>>>;
+  /** Returns the info to be used by the calendar UI to show the dates */
   getCalendarDays?: Maybe<Array<Maybe<Scalars['CalendarDayKey']>>>;
   getDate?: Maybe<Scalars['String']>;
+  /** Get all the exercises of this user id (uid) */
   getExercises?: Maybe<Array<Maybe<ExerciseStat>>>;
   getFollowers?: Maybe<Array<Maybe<User>>>;
   getFollowersCount: FollowersCount;
@@ -816,6 +853,7 @@ export type Query = {
   getInbox?: Maybe<Inbox>;
   getLogInbox?: Maybe<Inbox>;
   getNotifications?: Maybe<Inbox>;
+  /** Get all personal record of this exercise */
   getPRsOf?: Maybe<PrHistory>;
   getSession?: Maybe<SessionInfo>;
   getSupporters?: Maybe<Array<Maybe<Supporter>>>;
@@ -824,10 +862,18 @@ export type Query = {
   getTwitterChallengesStates?: Maybe<Array<Maybe<TweetState>>>;
   getUserSettings: Array<Maybe<UserSetting>>;
   getVideos?: Maybe<Array<Maybe<Video>>>;
+  /** Data for the "year overview" widget. The mini calendar that shows an entire year and the number represent a score based on how much volume was done. */
   getYearOverview?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  /** Years logged by the user. */
   getYearsLogged?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  /** Get the jorunal data for a particular day */
   jday?: Maybe<JLog>;
+  /**
+   * Returs the data for the editor for the current user (the widget that is used to edit a workout)
+   * Params work similar to `jrange`
+   */
   jeditor?: Maybe<JEditorData>;
+  /** Get the range data between a date `ymd` - `range * 7` and `ymd` */
   jrange?: Maybe<JRangeData>;
   officialExercises: Array<Maybe<OfficialExercise>>;
   sbdStats?: Maybe<SbdStats>;
@@ -1000,8 +1046,10 @@ export type RpeSetting = Setting & {
   waitingCodeToChange?: Maybe<Scalars['Boolean']>;
 };
 
+/** How many sets were done of this many reps. */
 export type RepStat = {
   __typename?: 'RepStat';
+  /** Total sets done using this rep range. */
   count: Scalars['Int'];
   r: Scalars['Int'];
 };
@@ -1186,24 +1234,47 @@ export type UnitValueWhen = {
 export type User = {
   __typename?: 'User';
   age?: Maybe<Scalars['Int']>;
+  /** Hash to add to the avatar url... */
   avatarhash: Scalars['String'];
   bw?: Maybe<Scalars['Float']>;
+  /** Country code */
   cc?: Maybe<Scalars['String']>;
+  /**
+   *    Custom `factor` for the 1RM formula. Which is:
+   * ```r>10? 0 : Math.min(9999, w * ( (factor || 46) / (((factor || 46)+1)-r) ) ) ```
+   */
   custom1RM?: Maybe<Scalars['Int']>;
   email?: Maybe<Scalars['String']>;
+  /** See above, but this is the system's DEFAULT value. */
   est1RMFactor?: Maybe<Scalars['Int']>;
+  /** Javascript version of the 1RM forumyla to be used by the frontend using `eval(estimate1RMFormula)` */
   estimate1RMFormula?: Maybe<Scalars['String']>;
-  forumRole?: Maybe<Scalars['String']>;
+  /**
+   * ```txt
+   * 1 = Responsable for administrating the forum
+   * 2 = Responsable for moderating the posts in the forum, can delete or attach notes to posts.
+   * 3 = Can attach notes to posts to complement or dispute information.
+   * ```
+   */
+  forumRole?: Maybe<ForumRoleKey>;
   id: Scalars['ID'];
+  /** Is Female? 0 | 1 */
   isf?: Maybe<Scalars['Int']>;
   joined?: Maybe<Scalars['String']>;
+  /** Ranges that the calendar's zoom UI has available. Used by the caldendar widget. */
   jranges?: Maybe<Array<Maybe<Scalars['Int']>>>;
   private?: Maybe<Scalars['Int']>;
+  /** Days left as active supporter */
   sleft?: Maybe<Scalars['Int']>;
+  /** Supporter Level */
   slvl?: Maybe<Scalars['Float']>;
+  /** URLs of social media or whatever... */
   socialLinks?: Maybe<Array<Maybe<Scalars['String']>>>;
+  /** Active supporter? 1 = true */
   sok?: Maybe<Scalars['Int']>;
+  /** Username */
   uname: Scalars['String'];
+  /** Prefered weight unit. 1= Uses Kilograms. 0=Uses Pounds */
   usekg?: Maybe<Scalars['Int']>;
 };
 
@@ -1241,7 +1312,9 @@ export type VoidSetting = Setting & {
 
 export type Weight = {
   __typename?: 'Weight';
+  /** 1 = If the weight is meant to be displayed as pounds. */
   lb: Scalars['Int'];
+  /** Value of the weight (in kilograms) */
   v: Scalars['Float'];
 };
 
@@ -1253,11 +1326,16 @@ export type WeightClass = {
   name: Scalars['String'];
 };
 
+/** Records related to using (W)eight for (D)istance (O)r (T)ime.  */
 export type WxDotpRs = {
   __typename?: 'WxDOTPRs';
+  /** Distance for time PRs. (Ex: goal is either increase or decrease distance over time) */
   DxTPR?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  /** Weight for distance PRs */
   WxD_PRs?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  /** Weight for time PRs */
   WxT_PRs?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  /** Links `y = erows[i]` --> `ymds[y]` so you know when the erow was done.  */
   erowi2ymdi?: Maybe<Array<Maybe<Scalars['Int']>>>;
   erows?: Maybe<Array<Maybe<Set>>>;
   maxDistancePR?: Maybe<Array<Maybe<Scalars['Int']>>>;
@@ -1269,8 +1347,10 @@ export type WxDotpRs = {
   ymds?: Maybe<Array<Maybe<Scalars['YMD']>>>;
 };
 
+/** Weight for Distance PR */
 export type WxDpr = {
   __typename?: 'WxDPR';
+  /** Weight added to the user's bodyweight */
   a2bw?: Maybe<Scalars['Float']>;
   d: Scalars['Float'];
   dunit: Scalars['String'];
@@ -1316,7 +1396,12 @@ export type GetCommunityStatsQueryVariables = Exact<{
 }>;
 
 
-export type GetCommunityStatsQuery = { __typename?: 'Query', communityStats?: { __typename?: 'CommunityStats', title: string, scanFrecuency: string, timestamp?: any | null, heavyest?: Array<{ __typename?: 'Heavyest', ymd: any, reps: number, e: string, by: string, w: { __typename?: 'Weight', v: number, lb: number }, bw?: { __typename?: 'Weight', v: number, lb: number } | null } | null> | null, estimated?: Array<{ __typename?: 'Estimated1RM', reps: number, ymd: any, e: string, by: string, originalw: { __typename?: 'Weight', lb: number, v: number }, w: { __typename?: 'Weight', v: number, lb: number }, bw?: { __typename?: 'Weight', v: number, lb: number } | null } | null> | null, volume?: Array<{ __typename?: 'MostVolume', totalReps: number, e: string, by: string, w: { __typename?: 'Weight', v: number, lb: number }, bw?: { __typename?: 'Weight', v: number, lb: number } | null } | null> | null, exercises?: Array<{ __typename?: 'Exercise', id: string, type?: string | null, name: string } | null> | null, users?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null> | null } | null };
+export type GetCommunityStatsQuery = { __typename?: 'Query', communityStats?: { __typename?: 'CommunityStats', title: string, scanFrecuency: string, timestamp?: any | null, heavyest?: Array<{ __typename?: 'Heavyest', ymd: any, reps: number, e: string, by: string, w: { __typename?: 'Weight', v: number, lb: number }, bw?: { __typename?: 'Weight', v: number, lb: number } | null } | null> | null, estimated?: Array<{ __typename?: 'Estimated1RM', reps: number, ymd: any, e: string, by: string, originalw: { __typename?: 'Weight', lb: number, v: number }, w: { __typename?: 'Weight', v: number, lb: number }, bw?: { __typename?: 'Weight', v: number, lb: number } | null } | null> | null, volume?: Array<{ __typename?: 'MostVolume', totalReps: number, e: string, by: string, w: { __typename?: 'Weight', v: number, lb: number }, bw?: { __typename?: 'Weight', v: number, lb: number } | null } | null> | null, exercises?: Array<{ __typename?: 'Exercise', id: string, type?: string | null, name: string } | null> | null, users?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } | null> | null } | null };
+
+export type GetUserDashboardQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetUserDashboardQuery = { __typename?: 'Query', getSession?: { __typename?: 'SessionInfo', time?: string | null, user: { __typename?: 'User', id: string, avatarhash: string, uname: string, cc?: string | null, slvl?: number | null, sok?: number | null, sleft?: number | null, age?: number | null, bw?: number | null, private?: number | null, isf?: number | null, joined?: string | null, usekg?: number | null, forumRole?: ForumRoleKey | null, custom1RM?: number | null, est1RMFactor?: number | null, jranges?: Array<number | null> | null, estimate1RMFormula?: string | null, socialLinks?: Array<string | null> | null }, forum?: { __typename?: 'ForumStatus', role?: { __typename?: 'ForumRole', id: string, title: string, can?: Array<string> | null, all?: boolean | null } | null } | null } | null, getInbox?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string, isGlobal?: boolean | null } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, dislike?: boolean | null, postId: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, isMention?: boolean | null, postId: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null, getNotifications?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string, isGlobal?: boolean | null } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, dislike?: boolean | null, postId: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, isMention?: boolean | null, postId: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null };
 
 export type GetExercisesQueryVariables = Exact<{
   uid: Scalars['ID'];
@@ -1357,7 +1442,7 @@ export type GetFeedQueryVariables = Exact<{
 }>;
 
 
-export type GetFeedQuery = { __typename?: 'Query', getActivityFeed?: Array<{ __typename?: 'UCard', when?: any | null, text?: string | null, andXmore?: number | null, posted?: any | null, media?: string | null, itemsLeftAfterThis?: number | null, user?: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null, workoutPreview?: Array<{ __typename?: 'EblockPreview', r?: number | null, w?: number | null, e: { __typename?: 'Exercise', id: string, name: string, type?: string | null } } | null> | null, utags?: { __typename?: 'UTagsUsed', tags?: Array<{ __typename?: 'UTag', id?: string | null, name: string } | null> | null, values?: Array<{ __typename?: 'UTagValue', id?: string | null, tagid: string, type: string, value: string } | null> | null } | null } | null> | null };
+export type GetFeedQuery = { __typename?: 'Query', getActivityFeed?: Array<{ __typename?: 'UCard', when?: any | null, text?: string | null, andXmore?: number | null, posted?: any | null, media?: string | null, itemsLeftAfterThis?: number | null, user?: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } | null, workoutPreview?: Array<{ __typename?: 'EblockPreview', r?: number | null, w?: number | null, e: { __typename?: 'Exercise', id: string, name: string, type?: string | null } } | null> | null, utags?: { __typename?: 'UTagsUsed', tags?: Array<{ __typename?: 'UTag', id?: string | null, name: string } | null> | null, values?: Array<{ __typename?: 'UTagValue', id?: string | null, tagid: string, type: string, value: string } | null> | null } | null } | null> | null };
 
 export type GetForumMessagesQueryVariables = Exact<{
   sectionId?: InputMaybe<Scalars['ID']>;
@@ -1366,7 +1451,7 @@ export type GetForumMessagesQueryVariables = Exact<{
 }>;
 
 
-export type GetForumMessagesQuery = { __typename?: 'Query', getForumMessages?: { __typename?: 'Messages', messages?: Array<{ __typename?: 'ForumMessage', id: string, message: string, note?: string | null, parentId?: string | null, sectionId?: string | null, threadId?: string | null, user: string, when: any, replies?: number | null } | null> | null, users?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null> | null } | null };
+export type GetForumMessagesQuery = { __typename?: 'Query', getForumMessages?: { __typename?: 'Messages', messages?: Array<{ __typename?: 'ForumMessage', id: string, message: string, note?: string | null, parentId?: string | null, sectionId?: string | null, threadId?: string | null, user: string, when: any, replies?: number | null } | null> | null, users?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } | null> | null } | null };
 
 export type GetThreadMessagesQueryVariables = Exact<{
   messageId?: InputMaybe<Scalars['ID']>;
@@ -1375,7 +1460,7 @@ export type GetThreadMessagesQueryVariables = Exact<{
 }>;
 
 
-export type GetThreadMessagesQuery = { __typename?: 'Query', getThreadMessages?: { __typename?: 'Messages', messages?: Array<{ __typename?: 'ForumMessage', id: string, message: string, note?: string | null, parentId?: string | null, sectionId?: string | null, user: string, when: any, likes?: number | null, dislikes?: number | null, replies?: number | null } | null> | null, users?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null> | null } | null };
+export type GetThreadMessagesQuery = { __typename?: 'Query', getThreadMessages?: { __typename?: 'Messages', messages?: Array<{ __typename?: 'ForumMessage', id: string, message: string, note?: string | null, parentId?: string | null, sectionId?: string | null, user: string, when: any, likes?: number | null, dislikes?: number | null, replies?: number | null } | null> | null, users?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } | null> | null } | null };
 
 export type GetForumSectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1446,7 +1531,7 @@ export type GetInboxQueryVariables = Exact<{
 }>;
 
 
-export type GetInboxQuery = { __typename?: 'Query', getInbox?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string, isGlobal?: boolean | null } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, dislike?: boolean | null, postId: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, isMention?: boolean | null, postId: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null };
+export type GetInboxQuery = { __typename?: 'Query', getInbox?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string, isGlobal?: boolean | null } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, dislike?: boolean | null, postId: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, isMention?: boolean | null, postId: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null };
 
 export type GetNotificationsQueryVariables = Exact<{
   olderThan?: InputMaybe<Scalars['UTCDate']>;
@@ -1454,7 +1539,7 @@ export type GetNotificationsQueryVariables = Exact<{
 }>;
 
 
-export type GetNotificationsQuery = { __typename?: 'Query', getNotifications?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string, isGlobal?: boolean | null } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, dislike?: boolean | null, postId: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, isMention?: boolean | null, postId: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null };
+export type GetNotificationsQuery = { __typename?: 'Query', getNotifications?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string, isGlobal?: boolean | null } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, dislike?: boolean | null, postId: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, isMention?: boolean | null, postId: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null };
 
 export type GetAnnouncementsQueryVariables = Exact<{
   olderThan?: InputMaybe<Scalars['UTCDate']>;
@@ -1475,7 +1560,7 @@ export type GetUserInfoQueryVariables = Exact<{
 }>;
 
 
-export type GetUserInfoQuery = { __typename?: 'Query', userInfo: { __typename?: 'UserInfo', daysLogged: number, user: { __typename?: 'User', id: string, avatarhash: string, uname: string, cc?: string | null, slvl?: number | null, sok?: number | null, sleft?: number | null, age?: number | null, bw?: number | null, private?: number | null, isf?: number | null, joined?: string | null, usekg?: number | null, forumRole?: string | null, custom1RM?: number | null, est1RMFactor?: number | null, jranges?: Array<number | null> | null, estimate1RMFormula?: string | null, socialLinks?: Array<string | null> | null }, forum?: { __typename?: 'ForumStatus', posts?: number | null, role?: { __typename?: 'ForumRole', title: string } | null } | null, best3?: Array<{ __typename?: 'BestLift', w: number, e: { __typename?: 'Exercise', id: string, name: string, type?: string | null } }> | null } };
+export type GetUserInfoQuery = { __typename?: 'Query', userInfo: { __typename?: 'UserInfo', daysLogged: number, user: { __typename?: 'User', id: string, avatarhash: string, uname: string, cc?: string | null, slvl?: number | null, sok?: number | null, sleft?: number | null, age?: number | null, bw?: number | null, private?: number | null, isf?: number | null, joined?: string | null, usekg?: number | null, forumRole?: ForumRoleKey | null, custom1RM?: number | null, est1RMFactor?: number | null, jranges?: Array<number | null> | null, estimate1RMFormula?: string | null, socialLinks?: Array<string | null> | null }, forum?: { __typename?: 'ForumStatus', posts?: number | null, role?: { __typename?: 'ForumRole', title: string } | null } | null, best3?: Array<{ __typename?: 'BestLift', w: number, e: { __typename?: 'Exercise', id: string, name: string, type?: string | null } }> | null } };
 
 export type GetUserBasicInfoQueryVariables = Exact<{
   of?: InputMaybe<Scalars['ID']>;
@@ -1483,7 +1568,7 @@ export type GetUserBasicInfoQueryVariables = Exact<{
 }>;
 
 
-export type GetUserBasicInfoQuery = { __typename?: 'Query', userBasicInfo?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null }> | null };
+export type GetUserBasicInfoQuery = { __typename?: 'Query', userBasicInfo?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null }> | null };
 
 export type GetCalendarDaysQueryVariables = Exact<{
   uid: Scalars['ID'];
@@ -1515,7 +1600,7 @@ export type AlsoPostedQueryVariables = Exact<{
 }>;
 
 
-export type AlsoPostedQuery = { __typename?: 'Query', alsoposted?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null> | null };
+export type AlsoPostedQuery = { __typename?: 'Query', alsoposted?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } | null> | null };
 
 export type JeditorDataFieldsFragment = { __typename?: 'JEditorData', etags: Array<string | null>, baseBW?: number | null, exercises: Array<{ __typename?: 'ExerciseStat', days: number, reps: number, e: { __typename?: 'Exercise', id: string, name: string, type?: string | null } } | null>, utags?: Array<{ __typename?: 'UTag', id?: string | null, name: string } | null> | null, did?: Array<{ __typename?: 'JEditorBWTag', bw?: number | null } | { __typename?: 'JEditorDayTag', on: any } | { __typename?: 'JEditorEBlock', e?: number | null, sets?: Array<{ __typename?: 'JEditorEROW', usebw?: number | null, v?: number | null, c?: string | null, s?: number | null, r?: number | null, lb?: number | null, rpe?: number | null, t?: number | null, d?: number | null, dunit?: string | null, type?: number | null } | null> | null } | { __typename?: 'JEditorNewExercise' } | { __typename?: 'JEditorText', text?: string | null } | { __typename?: 'UTagValue', tagid: string, type: string, value: string } | null> | null };
 
@@ -1562,21 +1647,21 @@ export type GetUsersFollowingQueryVariables = Exact<{
 }>;
 
 
-export type GetUsersFollowingQuery = { __typename?: 'Query', getFollowers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null> | null };
+export type GetUsersFollowingQuery = { __typename?: 'Query', getFollowers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } | null> | null };
 
 export type GetUsersFollowedByQueryVariables = Exact<{
   who: Scalars['ID'];
 }>;
 
 
-export type GetUsersFollowedByQuery = { __typename?: 'Query', getFollowing?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null> | null };
+export type GetUsersFollowedByQuery = { __typename?: 'Query', getFollowing?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } | null> | null };
 
 export type GetFollowInfoQueryVariables = Exact<{
   uid: Scalars['ID'];
 }>;
 
 
-export type GetFollowInfoQuery = { __typename?: 'Query', getFollowers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null> | null, getFollowing?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } | null> | null };
+export type GetFollowInfoQuery = { __typename?: 'Query', getFollowers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } | null> | null, getFollowing?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } | null> | null };
 
 export type LikeMessageMutationVariables = Exact<{
   target: Scalars['ID'];
@@ -1621,7 +1706,7 @@ export type GetLogInboxQueryVariables = Exact<{
 }>;
 
 
-export type GetLogInboxQuery = { __typename?: 'Query', getLogInbox?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null };
+export type GetLogInboxQuery = { __typename?: 'Query', getLogInbox?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null };
 
 export type GetPublicInteractionsInboxQueryVariables = Exact<{
   olderThan?: InputMaybe<Scalars['UTCDate']>;
@@ -1629,7 +1714,7 @@ export type GetPublicInteractionsInboxQueryVariables = Exact<{
 }>;
 
 
-export type GetPublicInteractionsInboxQuery = { __typename?: 'Query', getAllPublicInteractionsInbox?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null };
+export type GetPublicInteractionsInboxQuery = { __typename?: 'Query', getAllPublicInteractionsInbox?: { __typename?: 'Inbox', referencedUsers?: Array<{ __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null }> | null, notifications?: Array<{ __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string } | { __typename: 'ForumNotification', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string } | { __typename: 'JComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string } | { __typename: 'LikeOnDM', id: string, when: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnJComment', id: string, when: any, jowner: string, ymd: any, by: string, to: string, msgid: string, text: string } | { __typename: 'LikeOnLog', id: string, when: any, jowner: string, ymd: any, by: string } | { __typename: 'StartedFollowing', id: string, when: any, by: string, to: string } | { __typename: 'SystemNotification', id: string, when: any, text: string, variant?: SystemNotificationType | null }> | null } | null };
 
 export type SendMessageMutationVariables = Exact<{
   message: Scalars['String'];
@@ -1650,7 +1735,7 @@ export type DeleteMessageMutation = { __typename?: 'Mutation', deleteMessage?: b
 export type GetSessionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetSessionQuery = { __typename?: 'Query', getSession?: { __typename?: 'SessionInfo', time?: string | null, user: { __typename?: 'User', id: string, avatarhash: string, uname: string, cc?: string | null, slvl?: number | null, sok?: number | null, sleft?: number | null, age?: number | null, bw?: number | null, private?: number | null, isf?: number | null, joined?: string | null, usekg?: number | null, forumRole?: string | null, custom1RM?: number | null, est1RMFactor?: number | null, jranges?: Array<number | null> | null, estimate1RMFormula?: string | null, socialLinks?: Array<string | null> | null }, forum?: { __typename?: 'ForumStatus', role?: { __typename?: 'ForumRole', id: string, title: string, can?: Array<string> | null, all?: boolean | null } | null } | null } | null };
+export type GetSessionQuery = { __typename?: 'Query', getSession?: { __typename?: 'SessionInfo', time?: string | null, user: { __typename?: 'User', id: string, avatarhash: string, uname: string, cc?: string | null, slvl?: number | null, sok?: number | null, sleft?: number | null, age?: number | null, bw?: number | null, private?: number | null, isf?: number | null, joined?: string | null, usekg?: number | null, forumRole?: ForumRoleKey | null, custom1RM?: number | null, est1RMFactor?: number | null, jranges?: Array<number | null> | null, estimate1RMFormula?: string | null, socialLinks?: Array<string | null> | null }, forum?: { __typename?: 'ForumStatus', role?: { __typename?: 'ForumRole', id: string, title: string, can?: Array<string> | null, all?: boolean | null } | null } | null } | null };
 
 export type SignupMutationVariables = Exact<{
   uname: Scalars['String'];
@@ -1796,12 +1881,12 @@ export type UnsubFromEmailsMutation = { __typename?: 'Mutation', unsubFromEmails
 export type GetSupportersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetSupportersQuery = { __typename?: 'Query', getSupporters?: Array<{ __typename?: 'Supporter', when?: string | null, user: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } } | null> | null };
+export type GetSupportersQuery = { __typename?: 'Query', getSupporters?: Array<{ __typename?: 'Supporter', when?: string | null, user: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } } | null> | null };
 
 export type GetActiveSupportersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetActiveSupportersQuery = { __typename?: 'Query', getActiveSupporters?: Array<{ __typename?: 'Supporter', when?: string | null, user: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } } | null> | null };
+export type GetActiveSupportersQuery = { __typename?: 'Query', getActiveSupporters?: Array<{ __typename?: 'Supporter', when?: string | null, user: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } } | null> | null };
 
 export type GetTwitterChallengesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1828,9 +1913,9 @@ export type DeleteTweetMutationVariables = Exact<{
 
 export type DeleteTweetMutation = { __typename?: 'Mutation', deleteTweet?: boolean | null };
 
-export type UserFieldsFragment = { __typename?: 'User', id: string, avatarhash: string, uname: string, cc?: string | null, slvl?: number | null, sok?: number | null, sleft?: number | null, age?: number | null, bw?: number | null, private?: number | null, isf?: number | null, joined?: string | null, usekg?: number | null, forumRole?: string | null, custom1RM?: number | null, est1RMFactor?: number | null, jranges?: Array<number | null> | null, estimate1RMFormula?: string | null, socialLinks?: Array<string | null> | null };
+export type UserFieldsFragment = { __typename?: 'User', id: string, avatarhash: string, uname: string, cc?: string | null, slvl?: number | null, sok?: number | null, sleft?: number | null, age?: number | null, bw?: number | null, private?: number | null, isf?: number | null, joined?: string | null, usekg?: number | null, forumRole?: ForumRoleKey | null, custom1RM?: number | null, est1RMFactor?: number | null, jranges?: Array<number | null> | null, estimate1RMFormula?: string | null, socialLinks?: Array<string | null> | null };
 
-export type BriefUserFieldsFragment = { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null };
+export type BriefUserFieldsFragment = { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null };
 
 export type UploadAvatarMutationVariables = Exact<{
   file: Scalars['Upload'];
@@ -1850,4 +1935,4 @@ export type GetVideosQueryVariables = Exact<{
 }>;
 
 
-export type GetVideosQuery = { __typename?: 'Query', getVideos?: Array<{ __typename?: 'Video', when: string, posted: string, logid: string, link: string, user: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: string | null } } | null> | null };
+export type GetVideosQuery = { __typename?: 'Query', getVideos?: Array<{ __typename?: 'Video', when: string, posted: string, logid: string, link: string, user: { __typename?: 'User', id: string, avatarhash: string, joined?: string | null, private?: number | null, uname: string, cc?: string | null, isf?: number | null, sok?: number | null, slvl?: number | null, forumRole?: ForumRoleKey | null } } | null> | null };
