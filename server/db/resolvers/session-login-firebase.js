@@ -12,7 +12,7 @@ import { getInvalidUsernameError } from '../../utils/getInvalidUsernameError.js'
 
 
 async function initializeFirebase() {
-    const credentialPath = path.resolve('../../firebase-adminsdk-credential.js');
+    const credentialPath = path.resolve(__dirname,'../../firebase-adminsdk-credential.js');
 
     try {
         await fs.access(credentialPath);
