@@ -1,4 +1,6 @@
 # OAuth2
+<img src="https://pbs.twimg.com/media/GZZURFBW4AE4q_k?format=jpg&name=medium" alt="cover"/>
+
 ### So you want to let your app act in behalf of weightxreps users to offer them new functionality?
 You are in the right place! Here you find out how!
 
@@ -112,6 +114,6 @@ To get the access token you will follow this flow:
 # SCOPES | Available Permissions
 When you ask for permission to a user, you will as the user what things you want to access or do, that info is sent in the `scope` parameter that is a `string` or comma separated values. The values are keys that represent things that can be done. The link bellow links to a javascript object with a sope per key with the description as it's value.
 
-### Available scopes -> [server/auth/scopes.js](server/auth/scopes.js)
+### Available scopes -> [/server/auth/scopes.js](/server/auth/scopes.js)
 
 
