@@ -9,7 +9,7 @@
     "start": "NODE_ENV=production node server-to-upload/index.js",
     "build-and-run": "npm run build && npm start",
     "exportschema": "graphql-codegen --config codegen.yml",
-    "update-sbd-rank": "node sbd-rank/update-sbdrank-data.js",
+    "update-sbd-rank": "node sbd-rank/update-sbdrank-data.mjs",
     "seed-db": "NODE_ENV=production tsnd wxr-dev-db/fill-with-dummy-data.js seed --dt=true",
     "truncate-db": "NODE_ENV=production tsnd wxr-dev-db/fill-with-dummy-data.js seed --dt=false"
   },

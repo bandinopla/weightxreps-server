@@ -1,0 +1,58 @@
+name: Update SBD Rank data
+
+on:
+  schedule:
+    - cron: '0 0 1,15 * *'  # Runs at 00:00 UTC on the 1st and 15th of every month
+
+jobs:
+  task-and-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run Task
+        run: |
+          npm install
+          npm run update-sbd-rank
+
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Stage and commit file...
+        run: |
+          git add ./server/db/resolvers/sbd-stats.js
+          git commit -m "Auto-commit: update sbd-stats.js"
+          git push
+
+      - name: Build...
+        run: npm run build  
+
+      - name: Upload to staging server...
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASS }} 
+          dry-run: true
+          server-dir: /wxr-server-staging/db/resolvers/
+          local-dir: ./server-to-upload/db/resolvers/  
+          exclude: |
+             **/*
+             !sbd-stats.js
+
+      - name: Copy to production & Restart...
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASS }}
+          port: ${{ secrets.SSH_PORT }}
+          script: | 
+            cp /home/${{ secrets.USER }}/wxr-server-staging/db/resolvers/sbd-stats.js /home/${{ secrets.USER }}/public_html/weightxreps.net/wxr-server-2/db/resolvers/
+            source /home/${{ secrets.USER }}/nodevenv/public_html/weightxreps.net/wxr-server-2/20/bin/activate
+            cd /home/${{ secrets.USER }}/public_html/weightxreps.net/wxr-server-2
+            nohup kill $(ps aux | grep "wxr-server-2" | awk '{print $2}') 2> /dev/null || echo "It was not running... anyway..." &  
