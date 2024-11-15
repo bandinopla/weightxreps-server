@@ -41,8 +41,8 @@ jobs:
           server-dir: /wxr-server-staging/db/resolvers/
           local-dir: ./server-to-upload/db/resolvers/  
           exclude: |
-             **/*
              !sbd-stats.js
+             **/*
 
       - name: Copy to production & Restart...
         uses: appleboy/ssh-action@v0.1.4
