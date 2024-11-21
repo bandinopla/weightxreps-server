@@ -21,7 +21,7 @@ class CanYXPlates extends Achievement {
                 
         this.liftID = y;
         this.kgW = kgW;
-        this.kgL = lb2kg( kgL ).toFixed(2);
+        this.kgL = Math.floor(lb2kg( kgL ) * 100) / 100;
         this.inTheLastDays = inTheLastDays;
     }
 
