@@ -229,7 +229,7 @@ export const SearchResolver = {
         search: async ( _, { query, page = 1 }, context )=> {
             const LIMIT = MAX_ITEMS_PER_PAGE; 
             const OFFSET = (page - 1) * LIMIT; 
-            const defaultUseKg = context.userInfo.usekg;
+            const defaultUseKg = context.userInfo? context.userInfo.usekg : true; // by default we assume KG if not set otherwise
             const searchOptions = searchParams( query, defaultUseKg ); 
             const options = [];
             const queryParams = []; 
