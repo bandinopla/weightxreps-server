@@ -19,7 +19,7 @@ const $types = gql`
   }
 
   extend type Query {
-    search( query:String!, page:Int ):SearchResults @no_oauth
+    search( query:String!, page:Int ):SearchResults @no_oauth @needsUserInfo
   }
  
 `;

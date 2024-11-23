@@ -157,13 +157,17 @@ function queryToTokens( query, segments )
     return queryToTokens( query.substr(1), segments );
 }
   
-function searchParams( query ) {
+function searchParams( query, defaultUseKg ) {
     const params = queryToTokens( query );
     const options = []; 
  
     params.forEach( (param,i) => {
         const prev = params[ i-1 ];
         let option = options[ options.length-1 ]; 
+
+        if( param.type=='wxr' && !param.unit ) {
+            param.unit = defaultUseKg? 'kg' : 'lb';
+        }
 
         if( !option )
         {
@@ -225,11 +229,12 @@ export const SearchResolver = {
         search: async ( _, { query, page = 1 }, context )=> {
             const LIMIT = MAX_ITEMS_PER_PAGE; 
             const OFFSET = (page - 1) * LIMIT; 
-
-            const searchOptions = searchParams( query ); 
+            const defaultUseKg = context.userInfo.usekg;
+            const searchOptions = searchParams( query, defaultUseKg ); 
             const options = [];
             const queryParams = []; 
             const myUID = context.session?.id;  
+            
  
             //
             // convert the seachOptions to the format used by the mysql library.
