@@ -18,6 +18,7 @@ import Achievements from "./Achievements.js";
 import Videos from "./Videos.js";
 import TWITTER_SCHEMA from "./Twitter.js";
 import TAGS from "./tags.js";
+import SEARCH from "./Search.js";
 import FORUM, { ForumRolesDocMarkup } from "./forum.js";
 import { OAuthDirective, OAuthDirectiveSchemaTransformer } from "../../auth/oauthGraphQLDirective.js";
 import { JS_1RM_FORMULA } from "../resolvers/exercises.js";
@@ -170,6 +171,7 @@ var schema = makeExecutableSchema({
             , TWITTER_SCHEMA
             , TAGS
             , FORUM
+            , SEARCH
             //, TestSubscription
           ]
 

@@ -17,6 +17,7 @@ import { AchievementsResolver } from "./resolvers/achievements.js";
 import { VideosResolver } from "./resolvers/videos.js"; 
 import { TwitterResolver } from "./resolvers/Twitter.js";
 import { ForumResolver } from "./resolvers/forum/resolver.js";
+import { SearchResolver } from "./resolvers/search.js";
 
  
 
@@ -38,7 +39,7 @@ export const Resolvers = mergeObjects([
     VideosResolver,
     TwitterResolver,
     ForumResolver
-
+    ,SearchResolver
 ]);
  
  

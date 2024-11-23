@@ -90,6 +90,8 @@ CREATE TABLE IF NOT EXISTS `exercises` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+ALTER TABLE `exercises` ADD FULLTEXT KEY `nameIndex` (`nombre`);
+
 -- CreateTable
 CREATE TABLE IF NOT EXISTS `follow` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,

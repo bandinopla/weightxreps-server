@@ -1,0 +1,22 @@
+query Search($query: String!, $page:Int) {
+  search(query: $query, page:$page) {
+    referencedUsers {
+      ...BriefUserFields
+    }
+    referencedExercises {
+      id
+      type
+      name
+    }
+    results {
+      ymd
+      exercise
+      user
+      weight
+      inlbs
+      reps
+      sets
+    }
+    page
+  }
+}
