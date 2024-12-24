@@ -137,7 +137,7 @@ const GetBestOfficialLiftsOf = async ( uid, onlyTheseTypes )=>{
                                         GROUP BY 
                                             eid
                                     ) 
-                                ORDER BY ymd ASC`, [ uid, officialEnames, uid ]);
+                                ORDER BY wkg DESC, ymd ASC`, [ uid, officialEnames, uid ]);
      
     return result.map( row => ({
         ...row,
