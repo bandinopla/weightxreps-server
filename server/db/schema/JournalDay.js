@@ -8,6 +8,7 @@ const $types = gql`
 
   type BestLift {
     w:Float! 
+    ymd:YMD!
     e:Exercise!
   }
 

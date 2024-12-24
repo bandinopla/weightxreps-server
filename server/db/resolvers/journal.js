@@ -97,21 +97,48 @@ const GetBestOfficialLiftsOf = async ( uid, onlyTheseTypes )=>{
     let officialEnames  = getAllOfficialEnames(onlyTheseTypes);
     let officialETags   = getAllOfficialETags(onlyTheseTypes);
 
-    let result = await query(`  SELECT 
-                                    MAX(A.wkg) AS wkg, 
-                                    B.nombre AS ename, 
-                                    B.id AS eid
+    // let result = await query(`  SELECT 
+    //                                 A.wkg AS wkg, 
+    //                                 B.nombre AS ename, 
+    //                                 B.id AS eid,
+    //                                 C.fecha_del_log AS ymd
 
-                                FROM erows AS A 
-                                INNER JOIN exercises AS B ON B.id=A.eid  
-                                WHERE 
-                                    A.uid=? 
-                                    AND A.reps>0 AND A.type=0
-                                    AND (B.nombre IN (?) OR ${ officialETags.map( tag=>`B.nombre LIKE '%${tag}' OR B.nombre LIKE '%${tag} %'` ).join(" OR ") })
+    //                             FROM erows AS A 
+    //                             INNER JOIN exercises AS B ON B.id=A.eid  
+    //                             INNER JOIN logs AS C ON A.logid=C.id
+    //                             WHERE 
+    //                                 A.uid=? 
+    //                                 AND A.reps>0 AND A.type=0
+    //                                 AND (B.nombre IN (?) OR ${ officialETags.map( tag=>`B.nombre LIKE '%${tag}' OR B.nombre LIKE '%${tag} %'` ).join(" OR ") })
                                     
-                                GROUP BY B.id 
-                                ORDER BY wkg DESC`, [ uid, officialEnames ]);
- 
+    //                             GROUP BY B.id 
+    //                             ORDER BY wkg DESC`, [ uid, officialEnames ]);
+    let result = await query(`SELECT 
+                                    e.id AS eid,
+                                    e.nombre AS ename,
+                                    er.wkg ,
+                                    l.fecha_del_log AS ymd
+                                FROM 
+                                    erows er
+                                JOIN 
+                                    exercises e ON er.eid = e.id
+                                JOIN 
+                                    logs l ON er.logid = l.id
+                                WHERE 
+                                    er.uid=? AND er.reps>0 AND er.type=0
+                                    AND (e.nombre IN (?) OR ${ officialETags.map( tag=>`e.nombre LIKE '%${tag}' OR e.nombre LIKE '%${tag} %'` ).join(" OR ") })
+                                    AND 
+                                    (er.eid, er.wkg) IN (
+                                        SELECT 
+                                            eid, MAX(wkg)
+                                        FROM 
+                                            erows 
+                                        WHERE uid=?
+                                        GROUP BY 
+                                            eid
+                                    ) 
+                                ORDER BY ymd ASC`, [ uid, officialEnames, uid ]);
+     
     return result.map( row => ({
         ...row,
         type: ename2type( row.ename )
@@ -273,6 +300,7 @@ export const JournalResolver = {
 
                                  return {
                                     w: ex?.wkg || 0,
+                                    ymd: ex.ymd, 
                                     e: { 
                                         id      : ex.eid, 
                                         name    : ex.ename, //getAllOfficialEnames([ etype ])[0],

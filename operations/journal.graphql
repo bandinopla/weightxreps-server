@@ -37,6 +37,7 @@ query GetUserInfo($userInfoUname: String!) {
     }
     best3 {
       w 
+      ymd
       e {
         id
         name
