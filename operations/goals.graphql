@@ -1,0 +1,35 @@
+query GetGoals($uid: ID!, $upToDate: YMD) {
+  getGoals(uid: $uid, upToDate: $upToDate) {
+    id
+    name
+    uid
+    exercise {
+      id 
+      name
+      type
+    }
+    creationDate
+    maxDate
+    completionDate
+    plannedProgress
+    type
+    weight
+    distance
+    reps
+    time
+    sets
+    comment
+    dUnit
+    tGoalFaster
+    progress
+    options
+  }
+}
+
+mutation SetGoal($eid:ID!, $ename:String, $startDate:YMD!, $type:Int!, $weight:Float, $reps:Int, $sets:Int, $plannedProgress:[Float!]!, $comment:String ) {
+  setGoal( eid:$eid, ename:$ename, startDate:$startDate, type:$type, weight:$weight, reps:$reps, sets:$sets, plannedProgress:$plannedProgress, comment:$comment )
+}
+
+mutation DeleteGoal( $goalId:ID! ) {
+  deleteGoal( id:$goalId )
+}

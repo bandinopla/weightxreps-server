@@ -369,7 +369,7 @@ const model = {
     }
 
     return {
-        dbid: op.lastInsertedId,
+        dbid: op.insertId,
         id: cid,
         name,
         url,

@@ -374,6 +374,12 @@ export enum Gender {
   Male = 'MALE'
 }
 
+export enum GoalType {
+  WeightXDistance = 'WEIGHT_X_DISTANCE',
+  WeightXReps = 'WEIGHT_X_REPS',
+  WeightXTime = 'WEIGHT_X_TIME'
+}
+
 export type Heavyest = BaseStat & {
   __typename?: 'Heavyest';
   bw?: Maybe<Weight>;
@@ -589,6 +595,7 @@ export type Mutation = {
   /** Removes the avatar from the currently logged in user. */
   deleteAvatar?: Maybe<Scalars['Boolean']>;
   deleteForumMessage?: Maybe<Scalars['Boolean']>;
+  deleteGoal?: Maybe<Scalars['Boolean']>;
   deleteMessage?: Maybe<Scalars['Boolean']>;
   deleteTweet?: Maybe<Scalars['Boolean']>;
   dislikeForumMessage: Scalars['ID'];
@@ -609,6 +616,7 @@ export type Mutation = {
   /** Some settings, when changed, send a code to the user's email, then that code has to be used here to confirm the change of the setting. */
   sendVerificationCode?: Maybe<UserSetting>;
   setForumPostNote?: Maybe<Scalars['Boolean']>;
+  setGoal?: Maybe<Scalars['ID']>;
   /** Used to set the value of a setting for the currenlty logged in user. */
   setSetting?: Maybe<UserSetting>;
   setTweet?: Maybe<Scalars['Boolean']>;
@@ -625,6 +633,11 @@ export type Mutation = {
 export type MutationDeleteForumMessageArgs = {
   id?: InputMaybe<Scalars['ID']>;
   why?: InputMaybe<Scalars['String']>;
+};
+
+
+export type MutationDeleteGoalArgs = {
+  id: Scalars['ID'];
 };
 
 
@@ -733,6 +746,23 @@ export type MutationSendVerificationCodeArgs = {
 export type MutationSetForumPostNoteArgs = {
   messageId: Scalars['ID'];
   note: Scalars['String'];
+};
+
+
+export type MutationSetGoalArgs = {
+  comment?: InputMaybe<Scalars['String']>;
+  dUnit?: InputMaybe<Scalars['String']>;
+  distance?: InputMaybe<Scalars['Int']>;
+  eid: Scalars['ID'];
+  ename?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  plannedProgress: Array<Scalars['Float']>;
+  reps?: InputMaybe<Scalars['Int']>;
+  sets?: InputMaybe<Scalars['Int']>;
+  startDate: Scalars['YMD'];
+  time?: InputMaybe<Scalars['Int']>;
+  type?: InputMaybe<Scalars['Int']>;
+  weight?: InputMaybe<Scalars['Float']>;
 };
 
 
@@ -851,6 +881,7 @@ export type Query = {
   getForumPostIndex: Scalars['Int'];
   getForumRolesDescription?: Maybe<Array<Maybe<RoleDescriptor>>>;
   getForumSections?: Maybe<Array<Maybe<ForumSection>>>;
+  getGoals?: Maybe<Array<Maybe<UserGoal>>>;
   getInbox?: Maybe<Inbox>;
   getLogInbox?: Maybe<Inbox>;
   getNotifications?: Maybe<Inbox>;
@@ -958,6 +989,12 @@ export type QueryGetForumMessagesArgs = {
 
 export type QueryGetForumPostIndexArgs = {
   postId: Scalars['ID'];
+};
+
+
+export type QueryGetGoalsArgs = {
+  uid: Scalars['ID'];
+  upToDate?: InputMaybe<Scalars['YMD']>;
 };
 
 
@@ -1305,6 +1342,29 @@ export type User = {
   usekg?: Maybe<Scalars['Int']>;
 };
 
+export type UserGoal = {
+  __typename?: 'UserGoal';
+  comment?: Maybe<Scalars['String']>;
+  completionDate?: Maybe<Scalars['YMD']>;
+  creationDate: Scalars['YMD'];
+  dUnit?: Maybe<Scalars['String']>;
+  distance: Scalars['Int'];
+  exercise: Exercise;
+  id: Scalars['ID'];
+  maxDate: Scalars['YMD'];
+  name: Scalars['String'];
+  options?: Maybe<Scalars['String']>;
+  plannedProgress: Array<Scalars['Float']>;
+  progress?: Maybe<Array<Maybe<Scalars['Float']>>>;
+  reps: Scalars['Int'];
+  sets: Scalars['Int'];
+  tGoalFaster?: Maybe<Scalars['Boolean']>;
+  time: Scalars['Int'];
+  type: GoalType;
+  uid: Scalars['ID'];
+  weight: Scalars['Float'];
+};
+
 export type UserInfo = {
   __typename?: 'UserInfo';
   best3?: Maybe<Array<BestLift>>;
@@ -1526,6 +1586,36 @@ export type SetForumMessageNoteMutationVariables = Exact<{
 
 export type SetForumMessageNoteMutation = { __typename?: 'Mutation', setForumPostNote?: boolean | null };
 
+export type GetGoalsQueryVariables = Exact<{
+  uid: Scalars['ID'];
+  upToDate?: InputMaybe<Scalars['YMD']>;
+}>;
+
+
+export type GetGoalsQuery = { __typename?: 'Query', getGoals?: Array<{ __typename?: 'UserGoal', id: string, name: string, uid: string, creationDate: any, maxDate: any, completionDate?: any | null, plannedProgress: Array<number>, type: GoalType, weight: number, distance: number, reps: number, time: number, sets: number, comment?: string | null, dUnit?: string | null, tGoalFaster?: boolean | null, progress?: Array<number | null> | null, options?: string | null, exercise: { __typename?: 'Exercise', id: string, name: string, type?: string | null } } | null> | null };
+
+export type SetGoalMutationVariables = Exact<{
+  eid: Scalars['ID'];
+  ename?: InputMaybe<Scalars['String']>;
+  startDate: Scalars['YMD'];
+  type: Scalars['Int'];
+  weight?: InputMaybe<Scalars['Float']>;
+  reps?: InputMaybe<Scalars['Int']>;
+  sets?: InputMaybe<Scalars['Int']>;
+  plannedProgress: Array<Scalars['Float']> | Scalars['Float'];
+  comment?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type SetGoalMutation = { __typename?: 'Mutation', setGoal?: string | null };
+
+export type DeleteGoalMutationVariables = Exact<{
+  goalId: Scalars['ID'];
+}>;
+
+
+export type DeleteGoalMutation = { __typename?: 'Mutation', deleteGoal?: boolean | null };
+
 type NotificationFields_Dm_Fragment = { __typename: 'DM', id: string, when: any, by: string, to: string, msgid: string, inResponseTo?: string | null, inResponseToMsg?: string | null, text: string, isGlobal?: boolean | null };
 
 type NotificationFields_ForumLike_Fragment = { __typename: 'ForumLike', id: string, when: any, jowner: string, ymd: any, by: string, to: string, text: string, forumSlug: string, threadId: string, threadSlug: string, dislike?: boolean | null, postId: string };
@@ -1615,7 +1705,7 @@ export type JDayQueryVariables = Exact<{
 }>;
 
 
-export type JDayQuery = { __typename?: 'Query', jday?: { __typename?: 'JLog', id: string, log?: string | null, fromMobile?: boolean | null, bw?: number | null, eblocks?: Array<{ __typename?: 'EBlock', eid: string, sets: Array<{ __typename?: 'Set', w?: number | null, r?: number | null, s?: number | null, lb?: number | null, ubw?: number | null, c?: string | null, rpe?: number | null, pr?: number | null, est1rm?: number | null, eff?: number | null, int?: number | null, type?: number | null, t?: number | null, d?: number | null, dunit?: string | null, speed?: number | null, force?: number | null } | null> } | null> | null, exercises?: Array<{ __typename?: 'ERef', exercise: { __typename?: 'Exercise', id: string, name: string, type?: string | null }, best?: { __typename?: 'EBestStats', eff?: { __typename?: 'BestEStat', w: number, r: number, lb: number, when: any, bw?: number | null, est1rm?: number | null } | null, int?: { __typename?: 'BestEStat', w: number, r: number, lb: number, when: any, bw?: number | null } | null, prsWxDorT?: { __typename?: 'BestWxDorT', maxDistance?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, minDistance?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, topSpeed?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, minTime?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, maxTime?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, maxForce?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null } | null } | null } | null> | null, utags?: Array<{ __typename?: 'UTag', id?: string | null, name: string } | null> | null, utagsValues?: Array<{ __typename?: 'UTagValue', id?: string | null, tagid: string, type: string, value: string, logid?: string | null } | null> | null } | null };
+export type JDayQuery = { __typename?: 'Query', jday?: { __typename?: 'JLog', id: string, log?: string | null, fromMobile?: boolean | null, bw?: number | null, eblocks?: Array<{ __typename?: 'EBlock', eid: string, sets: Array<{ __typename?: 'Set', w?: number | null, r?: number | null, s?: number | null, lb?: number | null, ubw?: number | null, c?: string | null, rpe?: number | null, pr?: number | null, est1rm?: number | null, eff?: number | null, int?: number | null, type?: number | null, t?: number | null, d?: number | null, dunit?: string | null, speed?: number | null, force?: number | null } | null> } | null> | null, exercises?: Array<{ __typename?: 'ERef', exercise: { __typename?: 'Exercise', id: string, name: string, type?: string | null }, best?: { __typename?: 'EBestStats', eff?: { __typename?: 'BestEStat', w: number, r: number, lb: number, when: any, bw?: number | null, est1rm?: number | null } | null, int?: { __typename?: 'BestEStat', w: number, r: number, lb: number, when: any, bw?: number | null } | null, prsWxDorT?: { __typename?: 'BestWxDorT', maxDistance?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, minDistance?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, topSpeed?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, minTime?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, maxTime?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null, maxForce?: { __typename?: 'UnitValueWhen', val: number, unit: string, when: any } | null } | null } | null } | null> | null, utags?: Array<{ __typename?: 'UTag', id?: string | null, name: string } | null> | null, utagsValues?: Array<{ __typename?: 'UTagValue', id?: string | null, tagid: string, type: string, value: string, logid?: string | null } | null> | null } | null, getGoals?: Array<{ __typename?: 'UserGoal', id: string, name: string, uid: string, creationDate: any, maxDate: any, completionDate?: any | null, plannedProgress: Array<number>, type: GoalType, weight: number, distance: number, reps: number, time: number, sets: number, comment?: string | null, dUnit?: string | null, tGoalFaster?: boolean | null, progress?: Array<number | null> | null, options?: string | null, exercise: { __typename?: 'Exercise', id: string, name: string, type?: string | null } } | null> | null };
 
 export type AlsoPostedQueryVariables = Exact<{
   ymd?: InputMaybe<Scalars['YMD']>;

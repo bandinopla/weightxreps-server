@@ -108,6 +108,32 @@ query JDay($uid: ID!, $ymd: YMD) {
         logid
     }
   }
+
+  getGoals(uid: $uid, upToDate: $ymd) { 
+    id
+    name
+    uid
+    exercise {
+      id 
+      name
+      type
+    }
+    creationDate
+    maxDate
+    completionDate
+    plannedProgress
+    type
+    weight
+    distance
+    reps
+    time
+    sets
+    comment
+    dUnit
+    tGoalFaster
+    progress
+    options
+  }
 }
 
 query AlsoPosted( $ymd: YMD ) {
