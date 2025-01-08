@@ -86,7 +86,7 @@ const getActivityFeed = async ( parent, args, context ) => {
                                     B.id AS logid
 
                                 FROM users AS A 
-                                LEFT JOIN logs AS B ON B.id=A.idOfLastLog  
+                                JOIN logs AS B ON B.id=A.idOfLastLog  
                                 ${$extraSQL} ;
                                 SELECT FOUND_ROWS() as itemsLeft
                                 `, [TIME_CONSTRAIN_VALUE] 
