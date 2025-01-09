@@ -19,7 +19,13 @@ var $pool = {
                 multipleStatements: true,
                 timezone:"Z",
                 supportBigNumbers: true,
-                bigNumberStrings: true
+                bigNumberStrings: true,
+                typeCast: (field, next) => {
+                    if (field.type === 'NEWDECIMAL') {
+                      return parseFloat(field.string());
+                    }
+                    return next();
+                  }
             });
         }
 
@@ -72,8 +78,8 @@ var $pool = {
                 resolve( results ); 
             }); 
 
-            if( process.env.VERBOSE==='true')
-                console.log( q.sql, q.query )
+            // if( process.env.VERBOSE==='true')
+            //     console.log(  process.env.VERBOSE, q.sql, q.query )
 
         } ); 
 

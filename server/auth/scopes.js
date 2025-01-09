@@ -2,6 +2,7 @@ export const oauth_scopes = {
     email: "Read your account's email",
     jwrite: "Log workouts in your journal",
     jread: "Read your journals", 
+    goals: "Set or Delete goals",
     "read:inbox":"Read your private messages",
     "read:notifications":"Read your notifications",
     "forum":"Write/Read in the forum",

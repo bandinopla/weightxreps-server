@@ -335,3 +335,42 @@ CREATE TABLE IF NOT EXISTS `forum` (
    INDEX `uid` (`uid`,`section_id`,`thread_id`,`parent_id`,`fecha_de_publicacion`)
 );
 
+
+
+
+CREATE TABLE IF NOT EXISTS `goals` (
+  `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(80) NOT NULL,
+  `uid` INT UNSIGNED NOT NULL,
+  `eid` INTEGER UNSIGNED NOT NULL,
+  `creationDate` DATE NOT NULL,
+  `maxDate` DATE NOT NULL,
+  `completionDate` DATE DEFAULT NULL COMMENT 'The date in which this goal was completed',
+  `plannedProgress` TEXT COMMENT 'JSON array of numbers from 0-1. Each element is a day...',
+  
+  `type` TINYINT UNSIGNED DEFAULT 0,
+  `weight` DECIMAL(6, 2) DEFAULT 1,
+  `distance` int UNSIGNED DEFAULT 0, 
+  `time` mediumint UNSIGNED DEFAULT 0,
+  `sets` INT UNSIGNED DEFAULT 1,
+  `reps` INT UNSIGNED DEFAULT 0,
+  
+  `comment` VARCHAR(300) COLLATE utf8mb4_unicode_ci ,
+
+  `dUnit` ENUM('cm','m','km','in','ft','yd','mi') DEFAULT NULL COMMENT 'Weight unit of the distance used by the user...',
+  `tGoalFaster` TINYINT(1) NOT NULL DEFAULT 0 COMMENT "If true, it means less time is better than more time...",
+
+  PRIMARY KEY (`id`),
+  INDEX `byUser` (`uid`),
+  INDEX `byUserAndType` (`uid`, `type`),
+  
+  -- Composite index to optimize queries between creationDate and maxDate
+  INDEX `byDateRange` (`creationDate`, `maxDate`),
+
+  -- Index to optimize queries filtering on completionDate IS NULL (incomplete goals)
+  INDEX `byCompletionDate` (`completionDate`),
+  FOREIGN KEY (`uid`) REFERENCES users(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`eid`) REFERENCES exercises(`id`) ON DELETE CASCADE
+);
+
+
