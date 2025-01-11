@@ -95,49 +95,37 @@ export const GetUserInfo = async ( requestorUID, requestedUserIdentifier, identi
 const GetBestOfficialLiftsOf = async ( uid, onlyTheseTypes )=>{
 
     let officialEnames  = getAllOfficialEnames(onlyTheseTypes);
-    let officialETags   = getAllOfficialETags(onlyTheseTypes);
+    let officialETags   = getAllOfficialETags(onlyTheseTypes); 
 
-    // let result = await query(`  SELECT 
-    //                                 A.wkg AS wkg, 
-    //                                 B.nombre AS ename, 
-    //                                 B.id AS eid,
-    //                                 C.fecha_del_log AS ymd
-
-    //                             FROM erows AS A 
-    //                             INNER JOIN exercises AS B ON B.id=A.eid  
-    //                             INNER JOIN logs AS C ON A.logid=C.id
-    //                             WHERE 
-    //                                 A.uid=? 
-    //                                 AND A.reps>0 AND A.type=0
-    //                                 AND (B.nombre IN (?) OR ${ officialETags.map( tag=>`B.nombre LIKE '%${tag}' OR B.nombre LIKE '%${tag} %'` ).join(" OR ") })
-                                    
-    //                             GROUP BY B.id 
-    //                             ORDER BY wkg DESC`, [ uid, officialEnames ]);
-    let result = await query(`SELECT 
+    let result = await query(` SELECT 
                                     e.id AS eid,
                                     e.nombre AS ename,
-                                    er.wkg ,
+                                    er.wkg,
+                                    er.reps,
                                     l.fecha_del_log AS ymd
-                                FROM 
-                                    erows er
-                                JOIN 
-                                    exercises e ON er.eid = e.id
-                                JOIN 
-                                    logs l ON er.logid = l.id
-                                WHERE 
-                                    er.uid=? AND er.reps>0 AND er.type=0
-                                    AND (e.nombre IN (?) OR ${ officialETags.map( tag=>`e.nombre LIKE '%${tag}' OR e.nombre LIKE '%${tag} %'` ).join(" OR ") })
-                                    AND 
-                                    (er.eid, er.wkg) IN (
-                                        SELECT 
-                                            eid, MAX(wkg)
-                                        FROM 
-                                            erows 
-                                        WHERE uid=?  AND erows.reps>0
-                                        GROUP BY 
-                                            eid
-                                    ) 
-                                ORDER BY wkg DESC, ymd ASC`, [ uid, officialEnames, uid ]);
+                                FROM erows er
+                                JOIN exercises e ON er.eid = e.id
+                                JOIN logs l ON er.logid = l.id
+                                WHERE er.uid = ? AND er.reps>0
+                                AND EXISTS (
+                                    SELECT 1
+                                        FROM erows er_sub
+                                        JOIN exercises e2 ON er_sub.eid = e2.id
+                                        WHERE er_sub.uid = er.uid
+                                            AND er_sub.reps > 0
+                                            AND er_sub.eid = er.eid
+                                            AND er_sub.wkg = (
+                                                SELECT MAX(erows_sub.wkg)
+                                                FROM erows erows_sub
+                                                WHERE erows_sub.uid = er_sub.uid
+                                                AND erows_sub.eid = er_sub.eid
+                                                AND erows_sub.reps > 0
+                                            )
+                                            AND er_sub.type = 0
+                                            AND (e2.nombre IN (?) OR ${ officialETags.map( tag=>`e2.nombre LIKE '%${tag}' OR e2.nombre LIKE '%${tag} %'` ).join(" OR ") })
+                                )
+                                ORDER BY er.wkg DESC, l.fecha_del_log ASC
+                                `, [ uid, officialEnames  ]); 
      
     return result.map( row => ({
         ...row,
@@ -299,7 +287,8 @@ export const JournalResolver = {
                                  if( !ex ) return null;
 
                                  return {
-                                    w: ex?.wkg || 0,
+                                    w: ex.wkg ?? 0,
+                                    r: ex.reps ?? 1,
                                     ymd: ex.ymd, 
                                     e: { 
                                         id      : ex.eid, 

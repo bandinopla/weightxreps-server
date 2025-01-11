@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `erows` (
     INDEX `idx_erows_reps` (`reps`), 
     INDEX `idx_erows_wkg_reps` (`wkg`, `reps`), 
     INDEX `idx_erows_just_logid` (`logid`),
-
+    INDEX `idx_erows_eid_wkg` (`eid`, `wkg`),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
