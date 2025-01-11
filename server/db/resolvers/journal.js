@@ -133,7 +133,7 @@ const GetBestOfficialLiftsOf = async ( uid, onlyTheseTypes )=>{
                                             eid, MAX(wkg)
                                         FROM 
                                             erows 
-                                        WHERE uid=?
+                                        WHERE uid=?  AND erows.reps>0
                                         GROUP BY 
                                             eid
                                     ) 
