@@ -110,7 +110,7 @@ const GetBestOfficialLiftsOf = async ( uid, onlyTheseTypes )=>{
                                     logs l ON er.logid = l.id
                                 WHERE 
                                     er.uid=? AND er.reps>0 AND er.type=0
-                                    AND (e.nombre IN ("${officialEnames.join(`","`)}") OR ${ officialETags.map( tag=>`e.nombre LIKE '%${tag}' OR e.nombre LIKE '%${tag} %'` ).join(" OR ") })
+                                    AND (e.nombre IN (?) OR ${ officialETags.map( tag=>`e.nombre LIKE '%${tag}' OR e.nombre LIKE '%${tag} %'` ).join(" OR ") })
                                     AND 
                                     (er.eid, er.wkg) IN (
                                         SELECT 
