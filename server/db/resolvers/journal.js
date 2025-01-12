@@ -97,7 +97,7 @@ const GetBestOfficialLiftsOf = async ( uid, onlyTheseTypes )=>{
     let officialEnames  = getAllOfficialEnames(onlyTheseTypes);
     let officialETags   = getAllOfficialETags(onlyTheseTypes); 
 
-    let result = await(`SELECT 
+    let result = await query(`SELECT 
                             er.eid,
                             x.nombre AS ename,
                             er.wkg ,
