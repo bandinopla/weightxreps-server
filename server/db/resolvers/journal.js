@@ -100,32 +100,28 @@ const GetBestOfficialLiftsOf = async ( uid, onlyTheseTypes )=>{
     let result = await query(` SELECT 
                                     e.id AS eid,
                                     e.nombre AS ename,
-                                    er.wkg,
-                                    er.reps,
+                                    er.wkg ,
                                     l.fecha_del_log AS ymd
-                                FROM erows er
-                                JOIN exercises e ON er.eid = e.id
-                                JOIN logs l ON er.logid = l.id
-                                WHERE er.uid = ? AND er.reps>0
-                                AND EXISTS (
-                                    SELECT 1
-                                        FROM erows er_sub
-                                        JOIN exercises e2 ON er_sub.eid = e2.id
-                                        WHERE er_sub.uid = er.uid
-                                            AND er_sub.reps > 0
-                                            AND er_sub.eid = er.eid
-                                            AND er_sub.wkg = (
-                                                SELECT MAX(erows_sub.wkg)
-                                                FROM erows erows_sub
-                                                WHERE erows_sub.uid = er_sub.uid
-                                                AND erows_sub.eid = er_sub.eid
-                                                AND erows_sub.reps > 0
-                                            )
-                                            AND er_sub.type = 0
-                                            AND (e2.nombre IN (?) OR ${ officialETags.map( tag=>`e2.nombre LIKE '%${tag}' OR e2.nombre LIKE '%${tag} %'` ).join(" OR ") })
-                                )
-                                ORDER BY er.wkg DESC, l.fecha_del_log ASC
-                                `, [ uid, officialEnames  ]); 
+                                FROM 
+                                    erows er
+                                JOIN 
+                                    exercises e ON er.eid = e.id
+                                JOIN 
+                                    logs l ON er.logid = l.id
+                                WHERE 
+                                    er.uid=? AND er.reps>0 AND er.type=0
+                                    AND (e.nombre IN ("${officialEnames.join(`","`)}") OR ${ officialETags.map( tag=>`e.nombre LIKE '%${tag}' OR e.nombre LIKE '%${tag} %'` ).join(" OR ") })
+                                    AND 
+                                    (er.eid, er.wkg) IN (
+                                        SELECT 
+                                            eid, MAX(wkg)
+                                        FROM 
+                                            erows 
+                                        WHERE uid=? AND erows.reps>0
+                                        GROUP BY 
+                                            eid
+                                    ) 
+                                ORDER BY wkg DESC, ymd ASC`, [ uid, officialEnames,uid  ]); 
      
     return result.map( row => ({
         ...row,
