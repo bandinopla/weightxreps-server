@@ -244,6 +244,11 @@ const $types = gql`
     Years logged by the user.
     """
     getYearsLogged( uid:ID! ):[Int] @UserMustAllow
+
+	"""
+	Get the AI review for a particular log
+	"""
+	getAiReview( logid:ID! ):AIReview @UserMustAllow
   }
 
   extend type Mutation {

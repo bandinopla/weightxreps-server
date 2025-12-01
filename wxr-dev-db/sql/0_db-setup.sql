@@ -373,4 +373,13 @@ CREATE TABLE IF NOT EXISTS `goals` (
   FOREIGN KEY (`eid`) REFERENCES exercises(`id`) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS `ai_reviews` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `logid` int(11) NOT NULL,
+  `log_version` datetime NOT NULL,
+  `comment` text NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
 
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `logid` (`logid`)
+);

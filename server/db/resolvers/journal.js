@@ -1114,7 +1114,25 @@ export const JournalResolver = {
             return await JournalResolver.Query.jeditor(parent, { all:true, showMissing:true }, context); 
         }
 
-        
+        ,getAiReview: async (parent, args, context) => {
+			const logid = args.logid;  
+
+			const result = await query(`SELECT A.*, L.fecha_del_log AS ymd 
+				FROM ai_reviews AS A 
+				JOIN logs AS L ON A.logid=L.id AND L.ultima_modificacion=A.log_version
+				WHERE L.id=?  
+				`, [logid]);
+			if( !result.length )
+				return null; 
+
+			const review = result[0];
+			return {
+				id: review.id,
+				logYMD: review.ymd,
+				text: review.comment,
+				when: review.timestamp
+			};
+		}
     },
 
     Mutation: {

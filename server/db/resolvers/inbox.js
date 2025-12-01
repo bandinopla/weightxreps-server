@@ -589,6 +589,31 @@ export const InboxResolvers = {
     }
     //#endregion
 
+	const aiReviews = [] 
+	if( $onlyThisLOG==-1 && $onlyTo )
+	{
+		const reviews = await query(`SELECT ai.*, B.uid AS uid, B.fecha_del_log AS fecha 
+			FROM ai_reviews AS ai 
+			INNER JOIN logs AS B ON B.id=ai.logid 
+			WHERE B.uid=? ${extraWHERE} ${noLimit? "":`LIMIT ${LIMIT}`}`, [
+				$onlyTo, ...queryParams
+			]);
+
+		reviews.forEach(review => { 
+			aiReviews.push({
+				notificationID: review.id,
+				touid: review.uid,
+				logid: review.logid,
+				message: review.comment,
+				ymd: review.fecha,
+				fecha: review.timestamp,
+				subject: "ai-review"
+			})
+		});
+		
+	}
+	
+
 
 
     const JOURNAL_LIKE_TYPE     = LIKE_TYPES.LOG;
@@ -767,7 +792,7 @@ export const InboxResolvers = {
     //
     // add likes info...
     //
-    rows = [...rows, ...likesRows].sort((a, b) => b.fecha - a.fecha);  
+    rows = [...rows, ...likesRows, ...aiReviews].sort((a, b) => b.fecha - a.fecha);  
  
  
 
@@ -880,9 +905,19 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER,TOWNER, partialMess
                 /**
                  * ***************************** EL ORDEN DE ESTOS IF IMPORTA!!! ******************************************************
                  */
+				if( row.subject=="ai-review" )
+				{
+				    notifications.push( {
+				        _type       : "AIReview", 
+						id, 
+				        when        : row.fecha, 
+				        logYMD      : row.ymd ? dateASYMD( row.ymd, true ) : null,  
+						text 		: shortText( row.message )
+				    } );
+				}
 
                 //#region LikeOnMyComment & LikeOnMyDM
-                if( row.subject=="like-on-comment")
+                else if( row.subject=="like-on-comment")
                 { 
                     notifications.push( {
                         _type       : row.logid>0? "LikeOnJComment" : "LikeOnDM", 

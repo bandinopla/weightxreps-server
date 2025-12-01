@@ -27,6 +27,10 @@ fragment NotificationFields on Notification {
         isMention
         postId
      }
+
+	 ... on AIReview {
+		logYMD
+	 }
     
 }
 

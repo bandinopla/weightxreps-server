@@ -147,7 +147,13 @@ const $types = gql`
     ${IForumFields}
   }
 
-  union Notification = DM | JComment | LikeOnLog | LikeOnJComment | LikeOnDM | StartedFollowing | SystemNotification | ForumNotification | ForumLike
+  type AIReview implements INotification & IHasText {   
+    ${INotificationFields}
+    ${IHasTextFields}
+    logYMD:YMD!
+  }
+
+  union Notification = DM | JComment | LikeOnLog | LikeOnJComment | LikeOnDM | StartedFollowing | SystemNotification | ForumNotification | ForumLike | AIReview
  
 
 
