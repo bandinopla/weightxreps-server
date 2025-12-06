@@ -604,6 +604,7 @@ export const InboxResolvers = {
 				notificationID: review.id,
 				touid: review.uid,
 				logid: review.logid,
+				aiprofile: review.aiprofile ?? 0,
 				message: review.comment,
 				ymd: review.fecha,
 				fecha: review.timestamp,
@@ -912,6 +913,7 @@ const getInboxGraphQLResponse = async ( rows, BY, TO, JOWNER,TOWNER, partialMess
 						id, 
 				        when        : row.fecha, 
 				        logYMD      : row.ymd ? dateASYMD( row.ymd, true ) : null,  
+						aiprofile 	: row.aiprofile ?? 0,
 						text 		: shortText( row.message )
 				    } );
 				}

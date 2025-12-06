@@ -1129,6 +1129,7 @@ export const JournalResolver = {
 			return {
 				id: review.id,
 				logYMD: review.ymd,
+				aiprofile: review.aiprofile ?? 0,
 				text: review.comment,
 				when: review.timestamp
 			};

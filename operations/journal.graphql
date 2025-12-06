@@ -264,6 +264,7 @@ query GetAiReview($logid: ID!) {
     getAiReview(logid: $logid) {
         id
         logYMD
+		aiprofile
         text
         when
     }

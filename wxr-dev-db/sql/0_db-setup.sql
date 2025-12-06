@@ -379,7 +379,17 @@ CREATE TABLE IF NOT EXISTS `ai_reviews` (
   `log_version` datetime NOT NULL,
   `comment` text NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
-
+  `aiprofile` tinyint(3) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `logid` (`logid`)
+  UNIQUE KEY `logid` (`logid`),
+  INDEX `aiprofile` (`aiprofile`)
 );
+
+
+CREATE TABLE IF NOT EXISTS`ai_profile` (
+  `uid` int(11) NOT NULL,
+  `profile` tinyint(3) UNSIGNED NOT NULL,
+  UNIQUE KEY `userId` (`uid`),
+  INDEX KEY `profileId` (`profile`)
+);
+ 

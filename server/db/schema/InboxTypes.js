@@ -151,6 +151,7 @@ const $types = gql`
     ${INotificationFields}
     ${IHasTextFields}
     logYMD:YMD!
+	aiprofile:ID
   }
 
   union Notification = DM | JComment | LikeOnLog | LikeOnJComment | LikeOnDM | StartedFollowing | SystemNotification | ForumNotification | ForumLike | AIReview
