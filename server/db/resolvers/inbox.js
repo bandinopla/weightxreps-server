@@ -595,7 +595,7 @@ export const InboxResolvers = {
 		const reviews = await query(`SELECT ai.*, B.uid AS uid, B.fecha_del_log AS fecha 
 			FROM ai_reviews AS ai 
 			INNER JOIN logs AS B ON B.id=ai.logid 
-			WHERE B.uid=? ${extraWHERE} ${noLimit? "":`LIMIT ${LIMIT}`}`, [
+			WHERE B.uid=? ${extraWHERE.replaceAll("fecha","fecha_del_log")} ORDER BY B.fecha_del_log ${reverse?"ASC":"DESC"} ${noLimit? "":`LIMIT ${LIMIT}`}`, [
 				$onlyTo, ...queryParams
 			]);
 
